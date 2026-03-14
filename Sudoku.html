@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sudoku Solver</title>
+    <title>Sudoku Solver Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* OPTIMASI MAKSIMAL: Mencegah delay, blokir seleksi teks */
@@ -26,7 +26,6 @@
             color: #f8fafc;
         }
 
-        /* WADAH UTAMA - Responsif */
         .app-container {
             width: 100%;
             max-width: 420px; 
@@ -37,7 +36,6 @@
             position: relative;
         }
 
-        /* TATA LETAK MURNI */
         .nav-panel {
             display: none; 
             width: 100%;
@@ -67,12 +65,8 @@
             margin-bottom: 8px;
         }
 
-        .btn-full {
-            width: 100%;
-            display: block;
-        }
+        .btn-full { width: 100%; display: block; }
 
-        /* Efek Cahaya (Glow) di belakang papan */
         .glow-wrapper {
             position: relative;
             width: 100%;
@@ -92,7 +86,6 @@
             transform: translateZ(0); 
         }
 
-        /* GRID UTAMA: 9 BLOK 3x3 Terpisah Fisik */
         .sudoku-grid {
             position: relative;
             z-index: 1;
@@ -103,7 +96,6 @@
             border-radius: 6px;
         }
 
-        /* BLOK 3x3 */
         .sudoku-block {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -125,15 +117,14 @@
             cursor: pointer;
             aspect-ratio: 1 / 1;
             color: #000000;
+            transition: background-color 0.1s;
         }
 
-        /* Warna Dinamis Papan */
         .selected { background-color: #bfdbfe !important; }
         .cell-sure { background-color: #fde047 !important; color: #000; } 
         .cell-gamble { background-color: #fca5a5 !important; color: #000; } 
         .cell-hint { background-color: #fef08a !important; color: #000; } 
 
-        /* Tombol Dasar */
         .btn-instant {
             display: flex;
             align-items: center;
@@ -163,23 +154,35 @@
         .btn-solve { background-color: #16a34a; color: white; border: 1px solid #15803d; font-size: 1rem; box-shadow: 0 4px 15px rgba(22, 163, 74, 0.3); height: 44px;}
         .btn-solve:active { background-color: #15803d; transform: scale(0.98); }
 
-        /* Tombol Bahasa */
-        .btn-lang {
-            width: 42px; 
-            height: 30px; 
-            background: #1e293b; 
-            border: 1px solid #334155; 
-            border-radius: 6px; 
-            font-weight: bold; 
-            font-size: 0.8rem; 
-            color: #cbd5e1; 
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .btn-header {
+            width: 42px; height: 30px; background: #1e293b; border: 1px solid #334155; 
+            border-radius: 6px; font-weight: bold; font-size: 0.8rem; color: #cbd5e1; 
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
         }
 
-        /* Getar Error */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(2, 6, 23, 0.85);
+            backdrop-filter: blur(4px); z-index: 50; display: none;
+            justify-content: center; align-items: center; padding: 20px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-content {
+            background: #0f172a; border: 1px solid #334155; padding: 20px;
+            border-radius: 12px; width: 100%; max-width: 340px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .modal-content textarea {
+            width: 100%; height: 200px; background: #1e293b; color: #f8fafc;
+            border: 1px solid #475569; border-radius: 8px; padding: 12px;
+            font-family: monospace; font-size: 0.95rem; resize: none;
+            user-select: text; -webkit-user-select: text; line-height: 1.4;
+        }
+        .modal-content textarea:focus { outline: none; border-color: #3b82f6; }
+        .modal-error-msg {
+            color: #fca5a5; font-size: 0.8rem; text-align: center; min-height: 1.2rem; font-weight: 600;
+        }
+
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             25% { transform: translateX(-4px); background-color: #f87171; }
@@ -187,40 +190,36 @@
             75% { transform: translateX(-4px); background-color: #f87171; }
         }
         .error-shake { animation: shake 0.25s ease-in-out; }
-        .nav-btn:disabled { opacity: 0.3; pointer-events: none; }
     </style>
 </head>
 <body> 
 
     <div class="app-container">
         
-        <!-- Header dengan Tombol Bahasa -->
+        <!-- Header -->
         <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 12px;">
-            <div style="width: 42px;"></div>
+            <button onclick="openModal()" class="btn-header">I/O</button>
             <h1 style="font-size: 1.6rem; font-weight: 800; letter-spacing: 0.05em; margin: 0;">SUDOKU SOLVER</h1>
-            <button id="btn-lang" onclick="toggleLanguage()" class="btn-lang">ID</button>
+            <button id="btn-lang" onclick="toggleLanguage()" class="btn-header">ID</button>
         </div>
 
-        <!-- Panel Navigasi Gambling -->
         <div id="nav-panel" class="nav-panel">
             <button onclick="changeSolution(-1)" id="btn-prev" class="btn-instant btn-numpad" style="width: 45px; height: 35px;">&lt;</button>
             <div id="nav-text" style="font-size: 0.85rem; font-weight: bold; color: #facc15;">Solusi 1 / 5</div>
             <button onclick="changeSolution(1)" id="btn-next" class="btn-instant btn-numpad" style="width: 45px; height: 35px;">&gt;</button>
         </div>
 
-        <!-- Papan dengan Efek Glow dan Grid Terpisah -->
+        <!-- Papan Grid -->
         <div class="glow-wrapper"> 
-            <div id="grid" class="sudoku-grid">
-                <!-- 9 Blok akan di-generate oleh JS -->
-            </div>
+            <div id="grid" class="sudoku-grid"></div>
         </div>
 
-        <!-- Pesan Status -->
-        <div id="status" style="font-size: 0.85rem; margin-bottom: 8px; height: 18px; color: #93c5fd; font-weight: bold; text-align: center; width: 100%; white-space: nowrap;">
+        <!-- Status -->
+        <div id="status" style="font-size: 0.8rem; margin-bottom: 8px; height: 18px; color: #93c5fd; font-weight: bold; text-align: center; width: 100%; white-space: nowrap;">
             Gunakan panah untuk memindah kotak.
         </div>
 
-        <!-- Navigasi Panah (D-PAD) -->
+        <!-- D-PAD -->
         <div style="display: flex; gap: 6px; width: 100%; margin-bottom: 8px;">
             <button onclick="moveSelection(0, -1)" class="btn-instant btn-numpad" style="flex: 1; height: 38px; font-size: 1.2rem;">←</button>
             <button onclick="moveSelection(-1, 0)" class="btn-instant btn-numpad" style="flex: 1; height: 38px; font-size: 1.2rem;">↑</button>
@@ -228,7 +227,7 @@
             <button onclick="moveSelection(0, 1)" class="btn-instant btn-numpad" style="flex: 1; height: 38px; font-size: 1.2rem;">→</button>
         </div>
 
-        <!-- Numpad Instan Kompak -->
+        <!-- Numpad -->
         <div class="numpad-grid"> 
             <button onclick="inputNum(1)" class="btn-instant btn-numpad">1</button>
             <button onclick="inputNum(2)" class="btn-instant btn-numpad">2</button>
@@ -242,7 +241,7 @@
             <button onclick="inputNum(0)" class="btn-instant btn-del">DEL</button>
         </div>
 
-        <!-- Tombol Aksi Kompak -->
+        <!-- Aksi -->
         <div style="width: 100%;">
             <div class="action-grid">
                 <button id="btn-demo" onclick="loadDemo()" class="btn-instant btn-action">Contoh</button>
@@ -253,60 +252,62 @@
         </div>
     </div>
 
+    <!-- MODAL IMPORT / EXPORT -->
+    <div id="io-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 id="modal-title" style="font-weight: bold; font-size: 1.1rem; text-align: center; color: white; margin: 0;">Import / Export Puzzle</h2>
+            <textarea id="io-textarea" placeholder="Tempel angka di sini..."></textarea>
+            <div id="modal-error" class="modal-error-msg"></div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <button id="btn-paste" onclick="pastePuzzle()" class="btn-instant btn-action" style="height: 38px; font-size: 0.9rem;">Tempel</button>
+                <button id="btn-clear-txt" onclick="clearTextarea()" class="btn-instant btn-del" style="height: 38px; font-size: 0.9rem;">Hapus Teks</button>
+                <button id="btn-import" onclick="importPuzzle()" class="btn-instant btn-solve" style="height: 38px; font-size: 0.9rem;">Import</button>
+                <button id="btn-copy" onclick="copyPuzzle()" class="btn-instant btn-action" style="height: 38px; font-size: 0.9rem; background: #3b82f6; border-color: #2563eb;">Copy</button>
+            </div>
+            <button id="btn-close" onclick="closeModal()" class="btn-instant btn-reset" style="width: 100%; height: 38px;">Tutup</button>
+        </div>
+    </div>
+
     <script>
-        // --- DATA BAHASA (TRANSLATIONS) ---
         const langData = {
             id: {
-                langIcon: "ID",
-                btnDemo: "Contoh", btnSpoiler: "Spoiler", btnReset: "Reset", btnSolve: "Selesaikan",
-                statusDefault: "Gunakan panah untuk memindah kotak.",
-                statusTapFirst: "Ketuk kotak putih dulu!",
-                statusDeleted: "Angka dihapus.",
-                statusClash: "Gagal: Angka {num} sudah ada di jalurnya!",
-                statusBoardFull: "Papan terisi penuh! 🎉",
-                statusArrows: " (Gunakan panah untuk geser)",
-                statusBoardErr: "Papan error, perbaiki angka yang bentrok dulu!",
-                statusFindingSolve: "Menganalisa solusi penuh...",
-                statusNoSolution: "Mentok! Tidak ada solusi valid.",
-                statusNoHint: "Mentok! Papan ini tidak punya solusi.",
-                statusGamblingOnly: "Jawaban pasti habis, tersisa gambling. Tap selesaikan",
-                statusSpoilerAdded: "Spoiler ke-{count} ditambahkan!",
-                statusDone: "Selesai! Papan sudah penuh dan benar.",
-                statusDone100: "Selesai! 100% Pasti.",
-                statusGamblingFound: "Ditemukan {count} solusi. Awas Gambling!",
-                statusReset: "Papan di-reset. Siap dimainkan.",
-                statusDemo: "Papan contoh dimuat. Coba tap Spoiler!",
-                statusRestored: "Sesi sebelumnya berhasil dipulihkan.",
+                langIcon: "ID", btnDemo: "Contoh", btnSpoiler: "Spoiler", btnReset: "Reset", btnSolve: "Selesaikan",
+                statusDefault: "Gunakan panah untuk memindah kotak.", statusTapFirst: "Ketuk kotak putih dulu!", statusDeleted: "Angka dihapus.",
+                statusClash: "Gagal: Angka {num} berbenturan!", statusBoardFull: "Papan terisi penuh! 🎉", statusArrows: " (Gunakan panah)",
+                statusBoardErr: "Papan error, perbaiki angka yang bentrok dulu!", statusFindingSolve: "Menganalisa Algorithm X (DLX)...",
+                statusNoSolution: "Mentok! Tidak ada solusi valid.", statusNoHint: "Mentok! Papan ini tidak punya solusi.",
+                statusGamblingOnly: "Semua logika mentok, tersisa gambling. Tap Selesaikan", 
+                statusSpoilerAdded: "Spoiler ke-{count}: {strat}",
+                statusDone: "Selesai! Papan sudah penuh dan benar.", statusDone100: "Selesai! 100% Pasti via DLX.",
+                statusGamblingFound: "Ditemukan {count} variasi (DLX). Awas Gambling!", statusReset: "Papan di-reset. Siap dimainkan.",
+                statusDemo: "Papan contoh dimuat secara acak. Coba tap Spoiler!", statusRestored: "Sesi sebelumnya berhasil dipulihkan.",
                 navText: "Solusi {current} / {total}",
-                successMsgs: ["Sip.", "Mantap!", "Bagus sekali!", "Langkah yang tepat!", "Teruskan!", "Pilihan cerdas!", "Wah, jago juga!", "Akurasi mantap!", "Lanjut terus!", "Keren!", "Masuk akal!", "Tepat sasaran!", "Jenius!", "Kerja bagus!"]
+                ioTitle: "Import / Export Puzzle", ioPlaceholder: "Tempel angka di sini...\n(Otomatis menyaring angka)", 
+                btnImport: "Impor", btnCopy: "Salin", btnClose: "Tutup", btnPaste: "Tempel", btnClearTxt: "Hapus",
+                ioErrLength: "Harus tepat 81 angka! (Saat ini: {len})", ioCopied: "Disalin ke Clipboard!",
+                ioErrClash: "Gagal Import: Ada angka yang berbenturan!", ioPasteWarn: "Gunakan tap-tahan untuk menempel teks.",
+                successMsgs: ["Sip.", "Mantap!", "Bagus sekali!", "Langkah cerdas!", "Lanjut terus!"]
             },
             en: {
-                langIcon: "EN",
-                btnDemo: "Demo", btnSpoiler: "Hint", btnReset: "Reset", btnSolve: "Solve",
-                statusDefault: "Use arrows to move the box.",
-                statusTapFirst: "Tap a white box first!",
-                statusDeleted: "Number deleted.",
-                statusClash: "Failed: Number {num} is already in line!",
-                statusBoardFull: "Board is full! 🎉",
-                statusArrows: " (Use arrows to move)",
-                statusBoardErr: "Board error, fix the clashing numbers first!",
-                statusFindingSolve: "Analyzing full solution...",
-                statusNoSolution: "Stuck! No valid solution.",
-                statusNoHint: "Stuck! This board has no solution.",
-                statusGamblingOnly: "Sure answers depleted, gambling remains. Tap solve.",
-                statusSpoilerAdded: "Hint #{count} added!",
-                statusDone: "Done! Board is full and correct.",
-                statusDone100: "Done! 100% Sure.",
-                statusGamblingFound: "Found {count} solutions. Beware of Gambling!",
-                statusReset: "Board reset. Ready to play.",
-                statusDemo: "Demo loaded. Try tapping Hint!",
-                statusRestored: "Previous session restored.",
+                langIcon: "EN", btnDemo: "Demo", btnSpoiler: "Hint", btnReset: "Reset", btnSolve: "Solve",
+                statusDefault: "Use arrows to move the box.", statusTapFirst: "Tap a white box first!", statusDeleted: "Number deleted.",
+                statusClash: "Failed: Number {num} is clashing!", statusBoardFull: "Board is full! 🎉", statusArrows: " (Use arrows)",
+                statusBoardErr: "Board error, fix clashing numbers first!", statusFindingSolve: "Analyzing via Algorithm X (DLX)...",
+                statusNoSolution: "Stuck! No valid solution.", statusNoHint: "Stuck! This board has no solution.",
+                statusGamblingOnly: "Logic stuck, gambling remains. Tap Solve.", 
+                statusSpoilerAdded: "Hint #{count}: {strat}",
+                statusDone: "Done! Board is full and correct.", statusDone100: "Done! 100% Sure via DLX.",
+                statusGamblingFound: "Found {count} variations (DLX). Gambling!", statusReset: "Board reset. Ready to play.",
+                statusDemo: "Random demo loaded. Try tapping Hint!", statusRestored: "Previous session restored.",
                 navText: "Solution {current} / {total}",
-                successMsgs: ["Nice.", "Awesome!", "Great job!", "Good move!", "Keep it up!", "Smart choice!", "Wow, you're good!", "Great accuracy!", "Keep going!", "Cool!", "Makes sense!", "Spot on!", "Genius!", "Good work!"]
+                ioTitle: "Import / Export Puzzle", ioPlaceholder: "Paste numbers here...\n(Auto extracts digits)", 
+                btnImport: "Import", btnCopy: "Copy", btnClose: "Close", btnPaste: "Paste", btnClearTxt: "Clear",
+                ioErrLength: "Must be exactly 81 numbers! (Current: {len})", ioCopied: "Copied to Clipboard!",
+                ioErrClash: "Import Failed: Clashing numbers detected!", ioPasteWarn: "Use tap and hold to paste.",
+                successMsgs: ["Nice.", "Awesome!", "Great job!", "Smart move!", "Keep going!"]
             }
         };
 
-        // Inisialisasi State dan Bahasa
         let currentLang = localStorage.getItem('sudoku_lang') || 'id';
         let t = langData[currentLang];
 
@@ -316,6 +317,9 @@
         const navText = document.getElementById('nav-text');
         const btnPrev = document.getElementById('btn-prev');
         const btnNext = document.getElementById('btn-next');
+        const ioModal = document.getElementById('io-modal');
+        const ioTextarea = document.getElementById('io-textarea');
+        const modalError = document.getElementById('modal-error');
 
         let cells = [];
         let activeCell = null;
@@ -323,12 +327,44 @@
         let selectedCol = -1;
         
         let board = Array.from({ length: 9 }, () => Array(9).fill(0));
+        let certaintyMap = Array.from({ length: 9 }, () => Array(9).fill(false));
         let allSolutions = [];
         let currentSolIndex = 0;
         let isSolved = false;
         let spoilerCount = 0;
+        let lastDemoIndex = -1; // Mencegah puzzle contoh yang sama muncul berurutan
 
-        // --- MANAJEMEN BAHASA & UI ---
+        // --- SISTEM KANDIDAT GLOBAL (CONSTRAINT PROPAGATION) ---
+        let candsMap = Array(9).fill().map(() => Array(9).fill().map(() => new Set([1,2,3,4,5,6,7,8,9])));
+
+        function rebuildCandidates() {
+            for(let r=0; r<9; r++) for(let c=0; c<9; c++) {
+                candsMap[r][c] = new Set([1,2,3,4,5,6,7,8,9]);
+            }
+            for(let r=0; r<9; r++) {
+                for(let c=0; c<9; c++) {
+                    if(board[r][c] !== 0) {
+                        propagateCandidate(r, c, board[r][c]);
+                        candsMap[r][c].clear();
+                    }
+                }
+            }
+        }
+
+        function propagateCandidate(r, c, val) {
+            for(let i=0; i<9; i++) {
+                candsMap[r][i].delete(val);
+                candsMap[i][c].delete(val);
+            }
+            let br = Math.floor(r/3)*3, bc = Math.floor(c/3)*3;
+            for(let i=0; i<3; i++) {
+                for(let j=0; j<3; j++) {
+                    candsMap[br+i][bc+j].delete(val);
+                }
+            }
+        }
+        // ------------------------------------------------------
+
         function toggleLanguage() {
             currentLang = currentLang === 'id' ? 'en' : 'id';
             localStorage.setItem('sudoku_lang', currentLang);
@@ -344,12 +380,19 @@
             document.getElementById('btn-spoiler').textContent = t.btnSpoiler;
             document.getElementById('btn-reset').textContent = t.btnReset;
             document.getElementById('btn-solve').textContent = t.btnSolve;
+            document.getElementById('modal-title').textContent = t.ioTitle;
+            document.getElementById('io-textarea').placeholder = t.ioPlaceholder;
+            document.getElementById('btn-import').textContent = t.btnImport;
+            document.getElementById('btn-copy').textContent = t.btnCopy;
+            document.getElementById('btn-close').textContent = t.btnClose;
+            document.getElementById('btn-paste').textContent = t.btnPaste;
+            document.getElementById('btn-clear-txt').textContent = t.btnClearTxt;
         }
 
-        // --- FITUR AUTO SAVE (MEMORY) ---
         function saveState() {
             localStorage.setItem('sudoku_board_state', JSON.stringify(board));
             localStorage.setItem('sudoku_spoiler_count', spoilerCount);
+            localStorage.setItem('sudoku_demo_idx', lastDemoIndex);
         }
 
         function loadState() {
@@ -358,7 +401,7 @@
                 try {
                     board = JSON.parse(savedBoard);
                     spoilerCount = parseInt(localStorage.getItem('sudoku_spoiler_count')) || 0;
-                    
+                    lastDemoIndex = parseInt(localStorage.getItem('sudoku_demo_idx')) || -1;
                     let hasData = false;
                     for (let r = 0; r < 9; r++) {
                         for (let c = 0; c < 9; c++) {
@@ -368,39 +411,30 @@
                             }
                         }
                     }
-                    if (hasData) {
-                        setStatus(t.statusRestored, "#93c5fd");
-                    }
-                } catch (e) {
-                    console.error("Gagal memuat state", e);
-                }
+                    rebuildCandidates();
+                    if (hasData) setStatus(t.statusRestored, "#93c5fd");
+                } catch (e) {}
             }
         }
-        // --------------------------------
 
         function initGrid() {
             applyLanguageToUI();
-
             for (let i = 0; i < 9; i++) {
                 const block = document.createElement('div');
                 block.className = 'sudoku-block';
                 gridEl.appendChild(block);
             }
-
             for (let r = 0; r < 9; r++) {
                 cells[r] = [];
                 for (let c = 0; c < 9; c++) {
                     const cell = document.createElement('div');
                     cell.className = 'sudoku-cell';
                     cell.onpointerdown = () => selectCell(r, c, cell);
-                    
                     const blockIdx = Math.floor(r / 3) * 3 + Math.floor(c / 3);
                     gridEl.children[blockIdx].appendChild(cell);
-                    
                     cells[r][c] = cell;
                 }
             }
-            
             loadState();
             selectCell(4, 4, cells[4][4]);
         }
@@ -414,10 +448,7 @@
         }
 
         function moveSelection(dr, dc) {
-            if (selectedRow === -1 || selectedCol === -1) {
-                selectCell(4, 4, cells[4][4]); 
-                return;
-            }
+            if (selectedRow === -1 || selectedCol === -1) { selectCell(4, 4, cells[4][4]); return; }
             let newRow = (selectedRow + dr + 9) % 9;
             let newCol = (selectedCol + dc + 9) % 9;
             selectCell(newRow, newCol, cells[newRow][newCol]);
@@ -425,32 +456,24 @@
         }
 
         document.addEventListener('keydown', (e) => {
-            if (e.key >= '1' && e.key <= '9') {
-                inputNum(parseInt(e.key));
-            } else if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0') {
-                inputNum(0);
-            } else if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
-                e.preventDefault(); moveSelection(-1, 0);
-            } else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
-                e.preventDefault(); moveSelection(1, 0);
-            } else if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
-                e.preventDefault(); moveSelection(0, -1);
-            } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
-                e.preventDefault(); moveSelection(0, 1);
-            }
+            if (ioModal.classList.contains('active')) return; 
+            if (e.key >= '1' && e.key <= '9') inputNum(parseInt(e.key));
+            else if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0') inputNum(0);
+            else if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') { e.preventDefault(); moveSelection(-1, 0); }
+            else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') { e.preventDefault(); moveSelection(1, 0); }
+            else if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') { e.preventDefault(); moveSelection(0, -1); }
+            else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') { e.preventDefault(); moveSelection(0, 1); }
         });
 
         function inputNum(num) {
-            if (!activeCell) {
-                setStatus(t.statusTapFirst, "#f87171"); 
-                return;
-            }
+            if (!activeCell) { setStatus(t.statusTapFirst, "#f87171"); return; }
             if (isSolved) clearSolutionColors();
 
             if (num === 0) {
                 board[selectedRow][selectedCol] = 0;
                 activeCell.textContent = '';
                 activeCell.classList.remove('cell-hint');
+                rebuildCandidates(); 
                 setStatus(t.statusDeleted, "#cbd5e1");
                 saveState(); 
                 return;
@@ -473,6 +496,13 @@
             activeCell.textContent = num;
             activeCell.classList.remove('cell-hint'); 
             
+            if(temp === 0) {
+                propagateCandidate(selectedRow, selectedCol, num);
+                candsMap[selectedRow][selectedCol].clear();
+            } else {
+                rebuildCandidates();
+            }
+            
             saveState(); 
 
             if (findEmpty(board) === null) {
@@ -481,6 +511,69 @@
                 let randomMsg = t.successMsgs[Math.floor(Math.random() * t.successMsgs.length)];
                 setStatus(`${randomMsg}${t.statusArrows}`, "#6ee7b7"); 
             }
+        }
+
+        // --- I/O Modal ---
+        function getFormattedPuzzle() {
+            let str = "";
+            for(let r = 0; r < 9; r++) {
+                for(let c = 0; c < 9; c++) {
+                    str += board[r][c];
+                    if (c === 2 || c === 5) str += " "; 
+                }
+                if (r === 2 || r === 5) str += "\n\n"; 
+                else if (r < 8) str += "\n";
+            }
+            return str;
+        }
+
+        function openModal() {
+            modalError.textContent = ""; 
+            ioTextarea.value = getFormattedPuzzle();
+            ioModal.classList.add('active');
+        }
+
+        function closeModal() { ioModal.classList.remove('active'); modalError.textContent = ""; }
+
+        function copyPuzzle() {
+            ioTextarea.value = getFormattedPuzzle(); 
+            ioTextarea.select();
+            document.execCommand('copy');
+            document.getElementById('btn-copy').textContent = t.ioCopied;
+            setTimeout(() => { document.getElementById('btn-copy').textContent = t.btnCopy; }, 2000);
+        }
+
+        function clearTextarea() { ioTextarea.value = ""; ioTextarea.focus(); modalError.textContent = ""; }
+
+        async function pastePuzzle() {
+            try {
+                const text = await navigator.clipboard.readText();
+                ioTextarea.value = text;
+                modalError.textContent = "";
+            } catch (err) { modalError.textContent = t.ioPasteWarn; }
+        }
+
+        function importPuzzle() {
+            let cleanStr = ioTextarea.value.replace(/[^0-9]/g, '');
+            if (cleanStr.length !== 81) {
+                modalError.textContent = t.ioErrLength.replace('{len}', cleanStr.length); return;
+            }
+            let tempBoard = Array.from({ length: 9 }, () => Array(9).fill(0));
+            let idx = 0;
+            for(let r=0; r<9; r++) for(let c=0; c<9; c++) tempBoard[r][c] = parseInt(cleanStr[idx++]);
+            
+            if (!isValidStart(tempBoard)) { modalError.textContent = t.ioErrClash; return; }
+
+            clearAll();
+            for(let r=0; r<9; r++) {
+                for(let c=0; c<9; c++) {
+                    board[r][c] = tempBoard[r][c];
+                    if (board[r][c] !== 0) cells[r][c].textContent = board[r][c];
+                }
+            }
+            rebuildCandidates();
+            saveState(); closeModal(); selectCell(4, 4, cells[4][4]);
+            setStatus(currentLang === 'id' ? "Puzzle berhasil di-import!" : "Puzzle Imported!", "#6ee7b7");
         }
 
         function isValid(b, row, col, num) {
@@ -501,8 +594,8 @@
         function isValidStart(b) {
             for (let r = 0; r < 9; r++) {
                 for (let c = 0; c < 9; c++) {
-                    let num = b[r][c];
-                    if (num !== 0) {
+                    if (b[r][c] !== 0) {
+                        let num = b[r][c];
                         b[r][c] = 0;
                         if (!isValid(b, r, c, num)) { b[r][c] = num; return false; }
                         b[r][c] = num;
@@ -513,178 +606,474 @@
         }
 
         function findEmpty(b) {
-            for (let r = 0; r < 9; r++) {
-                for (let c = 0; c < 9; c++) {
-                    if (b[r][c] === 0) return [r, c];
+            for (let r=0; r<9; r++) for (let c=0; c<9; c++) if (b[r][c] === 0) return [r, c];
+            return null;
+        }
+
+        // =====================================================================
+        // ALGORITHM X (DANCING LINKS - DLX) ENGINE 
+        // =====================================================================
+        class DLXNode {
+            constructor(c) {
+                this.L = this; this.R = this; this.U = this; this.D = this;
+                this.C = c; this.rowID = null;
+            }
+        }
+        class DLXColumn extends DLXNode {
+            constructor(n) { super(null); this.size = 0; this.name = n; this.C = this; }
+        }
+
+        function buildDLX(board) {
+            const header = new DLXColumn("H");
+            const cols = [];
+            for (let i=0; i<324; i++) {
+                let c = new DLXColumn(i);
+                c.L = header.L; c.R = header;
+                header.L.R = c; header.L = c;
+                cols.push(c);
+            }
+
+            const addRow = (r, c, v) => {
+                let b = Math.floor(r/3)*3 + Math.floor(c/3);
+                let indices = [ r*9 + c, 81 + r*9 + v - 1, 162 + c*9 + v - 1, 243 + b*9 + v - 1 ];
+                let first = null;
+                for (let idx of indices) {
+                    let col = cols[idx];
+                    let node = new DLXNode(col);
+                    node.rowID = {r, c, v};
+                    node.U = col.U; node.D = col;
+                    col.U.D = node; col.U = node;
+                    col.size++;
+                    if (!first) { first = node; } 
+                    else {
+                        node.L = first.L; node.R = first;
+                        first.L.R = node; first.L = node;
+                    }
+                }
+            };
+
+            for (let r=0; r<9; r++) {
+                for (let c=0; c<9; c++) {
+                    if (board[r][c] !== 0) addRow(r, c, board[r][c]);
+                    else for (let v=1; v<=9; v++) addRow(r, c, v);
+                }
+            }
+            return header;
+        }
+
+        function cover(c) {
+            c.R.L = c.L; c.L.R = c.R;
+            for (let i = c.D; i !== c; i = i.D) {
+                for (let j = i.R; j !== i; j = j.R) {
+                    j.D.U = j.U; j.U.D = j.D;
+                    j.C.size--;
+                }
+            }
+        }
+
+        function uncover(c) {
+            for (let i = c.U; i !== c; i = i.U) {
+                for (let j = i.L; j !== i; j = j.L) {
+                    j.C.size++; j.D.U = j; j.U.D = j;
+                }
+            }
+            c.R.L = c; c.L.R = c;
+        }
+
+        function dlxSolveCheck(b) {
+            let h = buildDLX(b);
+            let hasAlt = false;
+            let check = (k) => {
+                if (h.R === h) { hasAlt = true; return true; }
+                let c = h.R;
+                if (c.size === 0) return false;
+                cover(c);
+                for (let r = c.D; r !== c; r = r.D) {
+                    for (let j = r.R; j !== r; j = j.R) cover(j.C);
+                    if (check(k + 1)) return true;
+                    for (let j = r.L; j !== r; j = j.L) uncover(j.C);
+                }
+                uncover(c);
+                return false;
+            }
+            check(0);
+            return hasAlt;
+        }
+
+        // =====================================================================
+        // LOGICAL DEDUCTION ENGINE 
+        // =====================================================================
+        function getUnits() {
+            let u = [];
+            for(let i=0;i<9;i++) {
+                let row=[], col=[], box=[];
+                for(let j=0;j<9;j++) {
+                    row.push({r:i, c:j}); col.push({r:j, c:i});
+                    box.push({r: Math.floor(i/3)*3 + Math.floor(j/3), c: (i%3)*3 + (j%3)});
+                }
+                u.push(row); u.push(col); u.push(box);
+            }
+            return u;
+        }
+        const ALL_UNITS = getUnits();
+
+        function getPeers(r, c) {
+            let p = [];
+            for(let i=0;i<9;i++) {
+                if(i!==c) p.push({r, c:i});
+                if(i!==r) p.push({r:i, c});
+            }
+            let br=Math.floor(r/3)*3, bc=Math.floor(c/3)*3;
+            for(let i=0;i<3;i++) for(let j=0;j<3;j++) if(br+i!==r && bc+j!==c) p.push({r:br+i, c:bc+j});
+            return p;
+        }
+
+        function doNakedSingle(b, c) {
+            for(let r=0; r<9; r++) for(let col=0; col<9; col++) {
+                if(b[r][col] === 0 && c[r][col].size === 1) return { r, c:col, val: Array.from(c[r][col])[0], strat: 'Naked Single' };
+            }
+            return null;
+        }
+
+        function doHiddenSingle(b, c) {
+            for(let v=1; v<=9; v++) {
+                for(let unit of ALL_UNITS) {
+                    let p = unit.filter(cell => b[cell.r][cell.c]===0 && c[cell.r][cell.c].has(v));
+                    if(p.length === 1) return { r: p[0].r, c: p[0].c, val: v, strat: 'Hidden Single' };
                 }
             }
             return null;
         }
 
-        function findSolutions(b, sols, limit = 10) {
-            if (sols.length >= limit) return;
-            const empty = findEmpty(b);
-            if (!empty) { sols.push(b.map(row => [...row])); return; }
-            const [r, c] = empty;
-            for (let num = 1; num <= 9; num++) {
-                if (isValid(b, r, c, num)) {
-                    b[r][c] = num;
-                    findSolutions(b, sols, limit);
-                    b[r][c] = 0;
-                }
-            }
-        }
-
-        // SPOILER LOGIC (Blinking fixed)
-        function useSpoiler() {
-            if (isSolved) clearSolutionColors();
-            if (!isValidStart(board)) {
-                setStatus(t.statusBoardErr, "#f87171");
-                return;
-            }
-            if (findEmpty(board) === null) {
-                setStatus(t.statusDone, "#4ade80");
-                return;
-            }
-
-            // Teks perantara (Mencari bocoran...) dihapus agar hitungan spoiler berubah dengan mulus tanpa kedip
-            setTimeout(() => {
-                let workingBoard = board.map(row => [...row]);
-                let sols = [];
-                findSolutions(workingBoard, sols, 10);
-
-                if (sols.length === 0) {
-                    setStatus(t.statusNoHint, "#f87171");
-                    return;
-                }
-
-                let sureHints = [];
-                for (let r = 0; r < 9; r++) {
-                    for (let c = 0; c < 9; c++) {
-                        if (board[r][c] === 0) {
-                            let val = sols[0][r][c];
-                            let isSure = true;
-                            for (let s = 1; s < sols.length; s++) {
-                                if (sols[s][r][c] !== val) { isSure = false; break; }
-                            }
-                            if (isSure) sureHints.push({ r, c, val });
+        function intersectRemoval(cands) {
+            let reduced = false;
+            for(let br=0; br<3; br++) for(let bc=0; bc<3; bc++) {
+                let bCells = [];
+                for(let i=0; i<3; i++) for(let j=0; j<3; j++) bCells.push({r:br*3+i, c:bc*3+j});
+                for(let v=1; v<=9; v++) {
+                    let hasV = bCells.filter(cell => cands[cell.r][cell.c].has(v));
+                    if(hasV.length > 1) {
+                        if(hasV.every(cell => cell.r === hasV[0].r)) { 
+                            let row = hasV[0].r;
+                            for(let col=0; col<9; col++) if(Math.floor(col/3) !== bc && cands[row][col].has(v)) { cands[row][col].delete(v); reduced=true; }
+                        }
+                        if(hasV.every(cell => cell.c === hasV[0].c)) { 
+                            let col = hasV[0].c;
+                            for(let row=0; row<9; row++) if(Math.floor(row/3) !== br && cands[row][col].has(v)) { cands[row][col].delete(v); reduced=true; }
                         }
                     }
                 }
+            }
+            return reduced ? "Pointing/Box-Line" : null;
+        }
 
-                if (sureHints.length === 0) {
-                    setStatus(t.statusGamblingOnly, "#fca5a5");
+        function nakedPairsTriples(cands, sizeT) {
+            let reduced = false;
+            for(let unit of ALL_UNITS) {
+                let eli = unit.filter(cell => cands[cell.r][cell.c].size > 0 && cands[cell.r][cell.c].size <= sizeT);
+                if (sizeT === 2) {
+                    for(let i=0; i<eli.length; i++) for(let j=i+1; j<eli.length; j++) {
+                        let s1 = cands[eli[i].r][eli[i].c], s2 = cands[eli[j].r][eli[j].c];
+                        if (s1.size===2 && s2.size===2) {
+                            let a1=Array.from(s1), a2=Array.from(s2);
+                            if(a1[0]===a2[0] && a1[1]===a2[1]) {
+                                for(let cell of unit) if(cell!==eli[i] && cell!==eli[j]) {
+                                    if(cands[cell.r][cell.c].has(a1[0])) { cands[cell.r][cell.c].delete(a1[0]); reduced=true; }
+                                    if(cands[cell.r][cell.c].has(a1[1])) { cands[cell.r][cell.c].delete(a1[1]); reduced=true; }
+                                }
+                            }
+                        }
+                    }
+                }
+                if (sizeT === 3) {
+                    for(let i=0; i<eli.length; i++) for(let j=i+1; j<eli.length; j++) for(let k=j+1; k<eli.length; k++) {
+                        let c1=eli[i], c2=eli[j], c3=eli[k];
+                        let un = new Set([...cands[c1.r][c1.c], ...cands[c2.r][c2.c], ...cands[c3.r][c3.c]]);
+                        if(un.size === 3) {
+                            for(let cell of unit) if(cell!==c1 && cell!==c2 && cell!==c3) {
+                                for(let v of un) if(cands[cell.r][cell.c].has(v)) { cands[cell.r][cell.c].delete(v); reduced=true; }
+                            }
+                        }
+                    }
+                }
+            }
+            return reduced ? (sizeT===2 ? "Naked Pair" : "Naked Triple") : null;
+        }
+
+        function hiddenPair(cands) {
+            let reduced = false;
+            for(let unit of ALL_UNITS) {
+                let cc = {};
+                for(let v=1; v<=9; v++) cc[v] = unit.filter(c => cands[c.r][c.c].has(v));
+                for(let v1=1; v1<=8; v1++) {
+                    if(cc[v1].length === 2) {
+                        for(let v2=v1+1; v2<=9; v2++) {
+                            if(cc[v2].length === 2) {
+                                let a=cc[v1], b=cc[v2];
+                                if(a[0].r===b[0].r && a[0].c===b[0].c && a[1].r===b[1].r && a[1].c===b[1].c) {
+                                    for(let cell of a) {
+                                        let s = cands[cell.r][cell.c];
+                                        for(let v of Array.from(s)) if(v!==v1 && v!==v2) { s.delete(v); reduced=true; }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return reduced ? "Hidden Pair" : null;
+        }
+
+        function xWing(cands) {
+            let reduced = false;
+            for(let v=1; v<=9; v++) {
+                let rc = [];
+                for(let r=0; r<9; r++) {
+                    let cols = [];
+                    for(let c=0; c<9; c++) if(cands[r][c].has(v)) cols.push(c);
+                    if(cols.length === 2) rc.push({r, c1:cols[0], c2:cols[1]});
+                }
+                for(let i=0; i<rc.length; i++) for(let j=i+1; j<rc.length; j++) {
+                    let r1=rc[i], r2=rc[j];
+                    if(r1.c1===r2.c1 && r1.c2===r2.c2) {
+                        for(let r=0; r<9; r++) if(r!==r1.r && r!==r2.r) {
+                            if(cands[r][r1.c1].has(v)) { cands[r][r1.c1].delete(v); reduced=true; }
+                            if(cands[r][r1.c2].has(v)) { cands[r][r1.c2].delete(v); reduced=true; }
+                        }
+                    }
+                }
+            }
+            return reduced ? "X-Wing" : null;
+        }
+
+        function xyWing(cands) {
+            let reduced = false;
+            let bi = [];
+            for(let r=0;r<9;r++) for(let c=0;c<9;c++) if(cands[r][c].size===2) bi.push({r,c, a:Array.from(cands[r][c])});
+            for(let pv of bi) {
+                let x=pv.a[0], y=pv.a[1], peers=getPeers(pv.r, pv.c), p1=[], p2=[];
+                for(let pr of peers) {
+                    let cs=cands[pr.r][pr.c];
+                    if(cs.size===2) {
+                        let a=Array.from(cs);
+                        if(a.includes(x) && !a.includes(y)) p1.push({r:pr.r, c:pr.c, z:a[0]===x?a[1]:a[0]});
+                        if(a.includes(y) && !a.includes(x)) p2.push({r:pr.r, c:pr.c, z:a[0]===y?a[1]:a[0]});
+                    }
+                }
+                for(let a of p1) for(let b of p2) {
+                    if(a.z===b.z && (a.r!==b.r || a.c!==b.c)) {
+                        let z=a.z, isect = getPeers(a.r,a.c).filter(c1 => getPeers(b.r,b.c).some(c2=>c1.r===c2.r && c1.c===c2.c));
+                        for(let i of isect) if((i.r!==pv.r || i.c!==pv.c) && cands[i.r][i.c].has(z)) {
+                            cands[i.r][i.c].delete(z); reduced=true;
+                        }
+                    }
+                }
+            }
+            return reduced ? "XY-Wing" : null;
+        }
+
+        function getLogicalHint(b) {
+            let wCands = Array(9).fill().map((_,r)=>Array(9).fill().map((_,c)=>new Set(candsMap[r][c])));
+            let strats = [];
+            
+            while(true) {
+                let ans = doNakedSingle(b, wCands) || doHiddenSingle(b, wCands);
+                if(ans) { 
+                    ans.strat += (strats.length ? ` (setelah ${strats[strats.length-1]})` : ''); 
+                    return ans; 
+                }
+                
+                let red = intersectRemoval(wCands) || nakedPairsTriples(wCands, 2) || nakedPairsTriples(wCands, 3) || hiddenPair(wCands) || xWing(wCands) || xyWing(wCands);
+                if(red) { strats.push(red); continue; }
+                break;
+            }
+            return null;
+        }
+
+        // --- EXECUTION: SPOILER ---
+        function useSpoiler() {
+            if (isSolved) clearSolutionColors();
+            if (!isValidStart(board)) { setStatus(t.statusBoardErr, "#f87171"); return; }
+            if (findEmpty(board) === null) { setStatus(t.statusDone, "#4ade80"); return; }
+
+            setTimeout(() => {
+                let logicAns = getLogicalHint(board);
+                if (logicAns) {
+                    board[logicAns.r][logicAns.c] = logicAns.val;
+                    cells[logicAns.r][logicAns.c].textContent = logicAns.val;
+                    cells[logicAns.r][logicAns.c].classList.add('cell-hint'); 
+                    propagateCandidate(logicAns.r, logicAns.c, logicAns.val); 
+                    candsMap[logicAns.r][logicAns.c].clear();
+                    
+                    spoilerCount++; saveState(); 
+                    selectCell(logicAns.r, logicAns.c, cells[logicAns.r][logicAns.c]);
+                    setStatus(t.statusSpoilerAdded.replace('{count}', spoilerCount).replace('{strat}', logicAns.strat), "#fef08a");
                     return;
                 }
 
-                let hint = sureHints[Math.floor(Math.random() * sureHints.length)];
-                board[hint.r][hint.c] = hint.val;
-                cells[hint.r][hint.c].textContent = hint.val;
-                cells[hint.r][hint.c].classList.add('cell-hint'); 
-                
-                spoilerCount++;
-                saveState(); 
-                
-                selectCell(hint.r, hint.c, cells[hint.r][hint.c]);
+                let header = buildDLX(board);
+                let firstSol = null;
+                let DLX_FindOne = (k, sol) => {
+                    if (header.R === header) { firstSol = [...sol]; return true; }
+                    let c = header.R; for (let j=c.R; j!==header; j=j.R) if(j.size<c.size) c=j;
+                    if (c.size === 0) return false;
+                    cover(c);
+                    for (let r=c.D; r!==c; r=r.D) {
+                        sol.push(r.rowID); for(let j=r.R; j!==r; j=j.R) cover(j.C);
+                        if(DLX_FindOne(k+1, sol)) return true;
+                        for(let j=r.L; j!==r; j=j.L) uncover(j.C); sol.pop();
+                    }
+                    uncover(c); return false;
+                };
+                DLX_FindOne(0, []);
 
-                if (findEmpty(board) === null) {
-                    setStatus(t.statusBoardFull, "#4ade80");
-                } else {
-                    setStatus(t.statusSpoilerAdded.replace('{count}', spoilerCount), "#fef08a");
+                if (!firstSol) { setStatus(t.statusNoHint, "#f87171"); return; }
+                let tempB = board.map(row => [...row]);
+                for(let s of firstSol) tempB[s.r][s.c] = s.v;
+
+                let foundHint = null;
+                for (let r = 0; r < 9; r++) {
+                    for (let c = 0; c < 9; c++) {
+                        if (board[r][c] === 0) {
+                            let valAsli = tempB[r][c];
+                            let isSure = true;
+                            for(let v=1; v<=9; v++) {
+                                if(v===valAsli) continue;
+                                if(isValid(board, r, c, v)) {
+                                    board[r][c] = v;
+                                    if(dlxSolveCheck(board)) { isSure = false; board[r][c]=0; break; }
+                                    board[r][c] = 0;
+                                }
+                            }
+                            if (isSure) { foundHint = {r, c, val: valAsli}; break; }
+                        }
+                    }
+                    if(foundHint) break;
                 }
-            }, 10);
+
+                if (!foundHint) { setStatus(t.statusGamblingOnly, "#fca5a5"); return; }
+
+                board[foundHint.r][foundHint.c] = foundHint.val;
+                cells[foundHint.r][foundHint.c].textContent = foundHint.val;
+                cells[foundHint.r][foundHint.c].classList.add('cell-hint'); 
+                
+                propagateCandidate(foundHint.r, foundHint.c, foundHint.val);
+                candsMap[foundHint.r][foundHint.c].clear();
+
+                spoilerCount++; saveState(); 
+                selectCell(foundHint.r, foundHint.c, cells[foundHint.r][foundHint.c]);
+                setStatus(t.statusSpoilerAdded.replace('{count}', spoilerCount).replace('{strat}', 'DLX Algorithm'), "#fef08a");
+            }, 5);
         }
 
-        // FULL SOLVE LOGIC
+        // --- EXECUTION: SOLVE ---
         function solve() {
-            if (activeCell) {
-                activeCell.classList.remove('selected');
-                activeCell = null; selectedRow = -1; selectedCol = -1;
-            }
+            if (activeCell) { activeCell.classList.remove('selected'); activeCell = null; selectedRow = -1; selectedCol = -1; }
             clearSolutionColors();
+            if (!isValidStart(board)) { setStatus(t.statusBoardErr, "#f87171"); return; }
+            if (findEmpty(board) === null) { setStatus(t.statusDone, "#4ade80"); return; }
 
-            if (!isValidStart(board)) {
-                setStatus(t.statusBoardErr, "#f87171");
-                return;
-            }
-
-            if (findEmpty(board) === null) {
-                setStatus(t.statusDone, "#4ade80");
-                return;
-            }
-
-            let workingBoard = board.map(row => [...row]);
             allSolutions = [];
             currentSolIndex = 0;
-            
             setStatus(t.statusFindingSolve, "#facc15");
             
             setTimeout(() => {
-                findSolutions(workingBoard, allSolutions, 10);
+                let header = buildDLX(board);
+                let DLX_SearchAll = (k, solution) => {
+                    if (allSolutions.length >= 150) return; 
+                    if (header.R === header) { 
+                        let b = Array.from({ length: 9 }, () => Array(9).fill(0));
+                        for(let s of solution) b[s.r][s.c] = s.v;
+                        allSolutions.push(b);
+                        return; 
+                    }
+                    let c = header.R;
+                    for (let j = c.R; j !== header; j = j.R) if (j.size < c.size) c = j;
+                    if (c.size === 0) return;
+                    cover(c);
+                    
+                    let rows = [];
+                    for (let r = c.D; r !== c; r = r.D) rows.push(r);
+                    for (let i = rows.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [rows[i], rows[j]] = [rows[j], rows[i]];
+                    }
+                    
+                    for (let r of rows) {
+                        solution.push(r.rowID);
+                        for (let j = r.R; j !== r; j = j.R) cover(j.C);
+                        DLX_SearchAll(k + 1, solution);
+                        for (let j = r.L; j !== r; j = j.L) uncover(j.C);
+                        solution.pop();
+                    }
+                    uncover(c);
+                };
+                
+                DLX_SearchAll(0, []);
 
                 if (allSolutions.length === 0) {
                     setStatus(t.statusNoSolution, "#f87171");
                 } else {
                     isSolved = true;
+                    for (let r = 0; r < 9; r++) {
+                        for (let c = 0; c < 9; c++) {
+                            if (board[r][c] === 0) {
+                                let firstV = allSolutions[0][r][c];
+                                let isSure = true;
+                                for(let i=1; i<allSolutions.length; i++) {
+                                    if(allSolutions[i][r][c] !== firstV) { isSure = false; break; }
+                                }
+                                certaintyMap[r][c] = isSure;
+                            } else {
+                                certaintyMap[r][c] = true;
+                            }
+                        }
+                    }
+
                     if (allSolutions.length === 1) {
                         setStatus(t.statusDone100, "#4ade80");
                         navPanel.classList.remove('show');
                     } else {
-                        let plus = allSolutions.length === 10 ? '+' : '';
+                        let plus = allSolutions.length === 150 ? '+' : '';
                         setStatus(t.statusGamblingFound.replace('{count}', allSolutions.length + plus), "#fca5a5");
                         navPanel.classList.add('show');
                         updateNavUI();
                     }
                     renderSolutionInstantly(0);
                 }
-            }, 10);
+            }, 50); 
         }
 
         function renderSolutionInstantly(index) {
             const sol = allSolutions[index];
-            const totalSols = allSolutions.length;
-
             for (let r = 0; r < 9; r++) {
                 for (let c = 0; c < 9; c++) {
                     if (board[r][c] === 0) { 
-                        let val = sol[r][c];
-                        let isSure = true;
-
-                        if (totalSols > 1) {
-                            for (let s = 0; s < totalSols; s++) {
-                                if (allSolutions[s][r][c] !== allSolutions[0][r][c]) {
-                                    isSure = false;
-                                    break;
-                                }
-                            }
-                        }
-
+                        let isSure = certaintyMap[r][c];
                         const cell = cells[r][c];
-                        cell.textContent = val;
-                        cell.classList.remove('cell-sure', 'cell-gamble');
-                        
                         if (isSure) {
+                            cell.textContent = allSolutions[0][r][c]; 
                             cell.classList.add('cell-sure');
+                            cell.classList.remove('cell-gamble');
                         } else {
+                            cell.textContent = sol[r][c]; 
                             cell.classList.add('cell-gamble');
+                            cell.classList.remove('cell-sure');
                         }
                     }
                 }
             }
         }
 
-        // NAVIGASI
         function changeSolution(dir) {
             currentSolIndex += dir;
             if (currentSolIndex < 0) currentSolIndex = 0;
             if (currentSolIndex >= allSolutions.length) currentSolIndex = allSolutions.length - 1;
-            
             updateNavUI();
-            
             const sol = allSolutions[currentSolIndex];
             for (let r = 0; r < 9; r++) {
                 for (let c = 0; c < 9; c++) {
-                    if (board[r][c] === 0 && cells[r][c].classList.contains('cell-gamble')) {
+                    if (board[r][c] === 0 && !certaintyMap[r][c]) {
                         cells[r][c].textContent = sol[r][c];
                     }
                 }
@@ -718,37 +1107,56 @@
             navPanel.classList.remove('show');
             spoilerCount = 0; 
             board = Array.from({ length: 9 }, () => Array(9).fill(0));
+            certaintyMap = Array.from({ length: 9 }, () => Array(9).fill(false));
             for (let r = 0; r < 9; r++) {
                 for (let c = 0; c < 9; c++) {
                     cells[r][c].textContent = '';
                     cells[r][c].classList.remove('cell-sure', 'cell-gamble', 'cell-hint', 'selected', 'error-shake');
                 }
             }
+            rebuildCandidates();
             saveState(); 
             selectCell(4, 4, cells[4][4]); 
             setStatus(t.statusReset, "#cbd5e1");
         }
 
+        // --- FITUR CONTOH DINAMIS ---
         function loadDemo() {
             clearAll();
             spoilerCount = 0; 
-            const demo = [
-                [5, 3, 0, 0, 7, 0, 0, 0, 0],
-                [6, 0, 0, 1, 9, 5, 0, 0, 0],
-                [0, 9, 8, 0, 0, 0, 0, 6, 0],
-                [8, 0, 0, 0, 6, 0, 0, 0, 3],
-                [4, 0, 0, 8, 0, 3, 0, 0, 1],
-                [7, 0, 0, 0, 2, 0, 0, 0, 6],
-                [0, 6, 0, 0, 0, 0, 2, 8, 0],
-                [0, 0, 0, 4, 1, 9, 0, 0, 5],
-                [0, 0, 0, 0, 8, 0, 0, 7, 0]
+
+            // BANK PUZZLE (Berisi berbagai tingkat kesulitan, dari mudah hingga gambling/cacat)
+            const puzzleBank = [
+                // 1. Level Gambling (Sengaja dibuat kurang angka untuk test fitur Gambling)
+                "530070000600195000098000060800060003400803001700020006060000280000419005000080070",
+                // 2. Level Normal
+                "000260701680070090190004500820100040004602900050003028009300074040050036703018000",
+                // 3. Level Sulit (Butuh banyak strategi logika)
+                "400000805030000000000700000020000060000080400000010000000603070500200000104000000",
+                // 4. Level Ahli (Expert)
+                "020000000000600003074080000000003002080040010600500000000010780500009000000000040",
+                // 5. Level Menengah
+                "000604700706000009000005080070020093800000005430010070050200000300000208002301000"
             ];
+
+            // Acak indeks, tapi pastikan tidak sama dengan puzzle sebelumnya
+            let randIdx;
+            do {
+                randIdx = Math.floor(Math.random() * puzzleBank.length);
+            } while (randIdx === lastDemoIndex && puzzleBank.length > 1);
+            
+            lastDemoIndex = randIdx; // Simpan indeks yang baru terpilih
+
+            const demoStr = puzzleBank[randIdx];
+            let idx = 0;
             for (let r = 0; r < 9; r++) {
                 for (let c = 0; c < 9; c++) {
-                    board[r][c] = demo[r][c];
-                    if (demo[r][c] !== 0) cells[r][c].textContent = demo[r][c];
+                    board[r][c] = parseInt(demoStr[idx++]);
+                    if (board[r][c] !== 0) cells[r][c].textContent = board[r][c];
                 }
             }
+            
+            rebuildCandidates();
             saveState(); 
             selectCell(0, 2, cells[0][2]); 
             setStatus(t.statusDemo, "#93c5fd");
