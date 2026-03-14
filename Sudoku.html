@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sudoku Solver</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* OPTIMASI MAKSIMAL: Mencegah delay, blokir seleksi teks */
+        * { 
+            -webkit-tap-highlight-color: transparent; 
+            box-sizing: border-box; 
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            margin: 0;
+            background-color: #0f172a; 
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: #f8fafc;
+        }
+
+        /* WADAH UTAMA - Responsif */
+        .app-container {
+            width: 100%;
+            max-width: 420px; 
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        /* TATA LETAK MURNI */
+        .nav-panel {
+            display: none; 
+            width: 100%;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 4px 10px;
+            margin-bottom: 10px;
+        }
+        .nav-panel.show { display: flex; } 
+
+        .numpad-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+            width: 100%;
+            margin-bottom: 8px;
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            width: 100%;
+            margin-bottom: 8px;
+        }
+
+        .btn-full {
+            width: 100%;
+            display: block;
+        }
+
+        /* Efek Cahaya (Glow) di belakang papan */
+        .glow-wrapper {
+            position: relative;
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .glow-wrapper::before {
+            content: "";
+            position: absolute;
+            inset: -4px;
+            background: linear-gradient(45deg, #ec4899, #8b5cf6, #3b82f6, #10b981);
+            filter: blur(14px);
+            opacity: 0.75;
+            z-index: 0;
+            border-radius: 12px;
+            transform: translateZ(0); 
+        }
+
+        /* GRID UTAMA: 9 BLOK 3x3 Terpisah Fisik */
+        .sudoku-grid {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px; 
+            background-color: transparent; 
+            border-radius: 6px;
+        }
+
+        /* BLOK 3x3 */
+        .sudoku-block {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            background-color: #1e293b; 
+            gap: 1px; 
+            border: 2px solid #0f172a; 
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .sudoku-cell {
+            background-color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.35rem; 
+            font-weight: 700;
+            cursor: pointer;
+            aspect-ratio: 1 / 1;
+            color: #000000;
+        }
+
+        /* Warna Dinamis Papan */
+        .selected { background-color: #bfdbfe !important; }
+        .cell-sure { background-color: #fde047 !important; color: #000; } 
+        .cell-gamble { background-color: #fca5a5 !important; color: #000; } 
+        .cell-hint { background-color: #fef08a !important; color: #000; } 
+
+        /* Tombol Dasar */
+        .btn-instant {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px; 
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            outline: none;
+        }
+        
+        .btn-numpad { background-color: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1; font-size: 1.25rem; height: 40px;}
+        .btn-numpad:active { background-color: #cbd5e1; transform: scale(0.96); }
+
+        .btn-action { background-color: #1e293b; color: white; border: 1px solid #334155; font-size: 0.85rem; height: 40px;}
+        .btn-action:active { background-color: #0f172a; transform: scale(0.96); }
+
+        .btn-del { background-color: #ffe4e6; color: #be123c; border: 1px solid #fecdd3; font-size: 0.85rem; height: 40px;}
+        .btn-del:active { background-color: #fecdd3; transform: scale(0.96); }
+
+        .btn-spoiler { background-color: #ca8a04; color: white; border: 1px solid #a16207; font-size: 0.85rem; height: 40px;}
+        .btn-spoiler:active { background-color: #a16207; transform: scale(0.96); }
+
+        .btn-reset { background-color: #9f1239; color: white; border: 1px solid #881337; font-size: 0.85rem; height: 40px;}
+        .btn-reset:active { background-color: #881337; transform: scale(0.96); }
+
+        .btn-solve { background-color: #16a34a; color: white; border: 1px solid #15803d; font-size: 1rem; box-shadow: 0 4px 15px rgba(22, 163, 74, 0.3); height: 44px;}
+        .btn-solve:active { background-color: #15803d; transform: scale(0.98); }
+
+        /* Tombol Bahasa */
+        .btn-lang {
+            width: 42px; 
+            height: 30px; 
+            background: #1e293b; 
+            border: 1px solid #334155; 
+            border-radius: 6px; 
+            font-weight: bold; 
+            font-size: 0.8rem; 
+            color: #cbd5e1; 
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Getar Error */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); background-color: #f87171; }
+            50% { transform: translateX(4px); background-color: #fca5a5; }
+            75% { transform: translateX(-4px); background-color: #f87171; }
+        }
+        .error-shake { animation: shake 0.25s ease-in-out; }
+        .nav-btn:disabled { opacity: 0.3; pointer-events: none; }
+    </style>
+</head>
+<body> 
+
+    <div class="app-container">
+        
+        <!-- Header dengan Tombol Bahasa -->
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 12px;">
+            <div style="width: 42px;"></div>
+            <h1 style="font-size: 1.6rem; font-weight: 800; letter-spacing: 0.05em; margin: 0;">SUDOKU SOLVER</h1>
+            <button id="btn-lang" onclick="toggleLanguage()" class="btn-lang">ID</button>
+        </div>
+
+        <!-- Panel Navigasi Gambling -->
+        <div id="nav-panel" class="nav-panel">
+            <button onclick="changeSolution(-1)" id="btn-prev" class="btn-instant btn-numpad" style="width: 45px; height: 35px;">&lt;</button>
+            <div id="nav-text" style="font-size: 0.85rem; font-weight: bold; color: #facc15;">Solusi 1 / 5</div>
+            <button onclick="changeSolution(1)" id="btn-next" class="btn-instant btn-numpad" style="width: 45px; height: 35px;">&gt;</button>
+        </div>
+
+        <!-- Papan dengan Efek Glow dan Grid Terpisah -->
+        <div class="glow-wrapper"> 
+            <div id="grid" class="sudoku-grid">
+                <!-- 9 Blok akan di-generate oleh JS -->
+            </div>
+        </div>
+
+        <!-- Pesan Status -->
+        <div id="status" style="font-size: 0.85rem; margin-bottom: 8px; height: 18px; color: #93c5fd; font-weight: bold; text-align: center; width: 100%; white-space: nowrap;">
+            Gunakan panah untuk memindah kotak.
+        </div>
+
+        <!-- Navigasi Panah (D-PAD) -->
+        <div style="display: flex; gap: 6px; width: 100%; margin-bottom: 8px;">
+            <button onclick="moveSelection(0, -1)" class="btn-instant btn-numpad" style="flex: 1; height: 38px; font-size: 1.2rem;">←</button>
+            <button onclick="moveSelection(-1, 0)" class="btn-instant btn-numpad" style="flex: 1; height: 38px; font-size: 1.2rem;">↑</button>
+            <button onclick="moveSelection(1, 0)" class="btn-instant btn-numpad" style="flex: 1; height: 38px; font-size: 1.2rem;">↓</button>
+            <button onclick="moveSelection(0, 1)" class="btn-instant btn-numpad" style="flex: 1; height: 38px; font-size: 1.2rem;">→</button>
+        </div>
+
+        <!-- Numpad Instan Kompak -->
+        <div class="numpad-grid"> 
+            <button onclick="inputNum(1)" class="btn-instant btn-numpad">1</button>
+            <button onclick="inputNum(2)" class="btn-instant btn-numpad">2</button>
+            <button onclick="inputNum(3)" class="btn-instant btn-numpad">3</button>
+            <button onclick="inputNum(4)" class="btn-instant btn-numpad">4</button>
+            <button onclick="inputNum(5)" class="btn-instant btn-numpad">5</button>
+            <button onclick="inputNum(6)" class="btn-instant btn-numpad">6</button>
+            <button onclick="inputNum(7)" class="btn-instant btn-numpad">7</button>
+            <button onclick="inputNum(8)" class="btn-instant btn-numpad">8</button>
+            <button onclick="inputNum(9)" class="btn-instant btn-numpad">9</button>
+            <button onclick="inputNum(0)" class="btn-instant btn-del">DEL</button>
+        </div>
+
+        <!-- Tombol Aksi Kompak -->
+        <div style="width: 100%;">
+            <div class="action-grid">
+                <button id="btn-demo" onclick="loadDemo()" class="btn-instant btn-action">Contoh</button>
+                <button id="btn-spoiler" onclick="useSpoiler()" class="btn-instant btn-spoiler">Spoiler</button>
+                <button id="btn-reset" onclick="clearAll()" class="btn-instant btn-reset">Reset</button>
+            </div>
+            <button id="btn-solve" onclick="solve()" class="btn-instant btn-solve btn-full">Selesaikan</button>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA BAHASA (TRANSLATIONS) ---
+        const langData = {
+            id: {
+                langIcon: "ID",
+                btnDemo: "Contoh", btnSpoiler: "Spoiler", btnReset: "Reset", btnSolve: "Selesaikan",
+                statusDefault: "Gunakan panah untuk memindah kotak.",
+                statusTapFirst: "Ketuk kotak putih dulu!",
+                statusDeleted: "Angka dihapus.",
+                statusClash: "Gagal: Angka {num} sudah ada di jalurnya!",
+                statusBoardFull: "Papan terisi penuh! 🎉",
+                statusArrows: " (Gunakan panah untuk geser)",
+                statusBoardErr: "Papan error, perbaiki angka yang bentrok dulu!",
+                statusFindingSolve: "Menganalisa solusi penuh...",
+                statusNoSolution: "Mentok! Tidak ada solusi valid.",
+                statusNoHint: "Mentok! Papan ini tidak punya solusi.",
+                statusGamblingOnly: "Jawaban pasti habis, tersisa gambling. Tap selesaikan",
+                statusSpoilerAdded: "Spoiler ke-{count} ditambahkan!",
+                statusDone: "Selesai! Papan sudah penuh dan benar.",
+                statusDone100: "Selesai! 100% Pasti.",
+                statusGamblingFound: "Ditemukan {count} solusi. Awas Gambling!",
+                statusReset: "Papan di-reset. Siap dimainkan.",
+                statusDemo: "Papan contoh dimuat. Coba tap Spoiler!",
+                statusRestored: "Sesi sebelumnya berhasil dipulihkan.",
+                navText: "Solusi {current} / {total}",
+                successMsgs: ["Sip.", "Mantap!", "Bagus sekali!", "Langkah yang tepat!", "Teruskan!", "Pilihan cerdas!", "Wah, jago juga!", "Akurasi mantap!", "Lanjut terus!", "Keren!", "Masuk akal!", "Tepat sasaran!", "Jenius!", "Kerja bagus!"]
+            },
+            en: {
+                langIcon: "EN",
+                btnDemo: "Demo", btnSpoiler: "Hint", btnReset: "Reset", btnSolve: "Solve",
+                statusDefault: "Use arrows to move the box.",
+                statusTapFirst: "Tap a white box first!",
+                statusDeleted: "Number deleted.",
+                statusClash: "Failed: Number {num} is already in line!",
+                statusBoardFull: "Board is full! 🎉",
+                statusArrows: " (Use arrows to move)",
+                statusBoardErr: "Board error, fix the clashing numbers first!",
+                statusFindingSolve: "Analyzing full solution...",
+                statusNoSolution: "Stuck! No valid solution.",
+                statusNoHint: "Stuck! This board has no solution.",
+                statusGamblingOnly: "Sure answers depleted, gambling remains. Tap solve.",
+                statusSpoilerAdded: "Hint #{count} added!",
+                statusDone: "Done! Board is full and correct.",
+                statusDone100: "Done! 100% Sure.",
+                statusGamblingFound: "Found {count} solutions. Beware of Gambling!",
+                statusReset: "Board reset. Ready to play.",
+                statusDemo: "Demo loaded. Try tapping Hint!",
+                statusRestored: "Previous session restored.",
+                navText: "Solution {current} / {total}",
+                successMsgs: ["Nice.", "Awesome!", "Great job!", "Good move!", "Keep it up!", "Smart choice!", "Wow, you're good!", "Great accuracy!", "Keep going!", "Cool!", "Makes sense!", "Spot on!", "Genius!", "Good work!"]
+            }
+        };
+
+        // Inisialisasi State dan Bahasa
+        let currentLang = localStorage.getItem('sudoku_lang') || 'id';
+        let t = langData[currentLang];
+
+        const gridEl = document.getElementById('grid');
+        const statusEl = document.getElementById('status');
+        const navPanel = document.getElementById('nav-panel');
+        const navText = document.getElementById('nav-text');
+        const btnPrev = document.getElementById('btn-prev');
+        const btnNext = document.getElementById('btn-next');
+
+        let cells = [];
+        let activeCell = null;
+        let selectedRow = -1;
+        let selectedCol = -1;
+        
+        let board = Array.from({ length: 9 }, () => Array(9).fill(0));
+        let allSolutions = [];
+        let currentSolIndex = 0;
+        let isSolved = false;
+        let spoilerCount = 0;
+
+        // --- MANAJEMEN BAHASA & UI ---
+        function toggleLanguage() {
+            currentLang = currentLang === 'id' ? 'en' : 'id';
+            localStorage.setItem('sudoku_lang', currentLang);
+            t = langData[currentLang];
+            applyLanguageToUI();
+            setStatus(t.statusDefault, "#93c5fd");
+            if (allSolutions.length > 0) updateNavUI();
+        }
+
+        function applyLanguageToUI() {
+            document.getElementById('btn-lang').textContent = t.langIcon;
+            document.getElementById('btn-demo').textContent = t.btnDemo;
+            document.getElementById('btn-spoiler').textContent = t.btnSpoiler;
+            document.getElementById('btn-reset').textContent = t.btnReset;
+            document.getElementById('btn-solve').textContent = t.btnSolve;
+        }
+
+        // --- FITUR AUTO SAVE (MEMORY) ---
+        function saveState() {
+            localStorage.setItem('sudoku_board_state', JSON.stringify(board));
+            localStorage.setItem('sudoku_spoiler_count', spoilerCount);
+        }
+
+        function loadState() {
+            const savedBoard = localStorage.getItem('sudoku_board_state');
+            if (savedBoard) {
+                try {
+                    board = JSON.parse(savedBoard);
+                    spoilerCount = parseInt(localStorage.getItem('sudoku_spoiler_count')) || 0;
+                    
+                    let hasData = false;
+                    for (let r = 0; r < 9; r++) {
+                        for (let c = 0; c < 9; c++) {
+                            if (board[r][c] !== 0) {
+                                cells[r][c].textContent = board[r][c];
+                                hasData = true;
+                            }
+                        }
+                    }
+                    if (hasData) {
+                        setStatus(t.statusRestored, "#93c5fd");
+                    }
+                } catch (e) {
+                    console.error("Gagal memuat state", e);
+                }
+            }
+        }
+        // --------------------------------
+
+        function initGrid() {
+            applyLanguageToUI();
+
+            for (let i = 0; i < 9; i++) {
+                const block = document.createElement('div');
+                block.className = 'sudoku-block';
+                gridEl.appendChild(block);
+            }
+
+            for (let r = 0; r < 9; r++) {
+                cells[r] = [];
+                for (let c = 0; c < 9; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'sudoku-cell';
+                    cell.onpointerdown = () => selectCell(r, c, cell);
+                    
+                    const blockIdx = Math.floor(r / 3) * 3 + Math.floor(c / 3);
+                    gridEl.children[blockIdx].appendChild(cell);
+                    
+                    cells[r][c] = cell;
+                }
+            }
+            
+            loadState();
+            selectCell(4, 4, cells[4][4]);
+        }
+
+        function selectCell(r, c, cellElement) {
+            if (activeCell) activeCell.classList.remove('selected');
+            activeCell = cellElement;
+            activeCell.classList.add('selected');
+            activeCell.classList.remove('error-shake');
+            selectedRow = r; selectedCol = c;
+        }
+
+        function moveSelection(dr, dc) {
+            if (selectedRow === -1 || selectedCol === -1) {
+                selectCell(4, 4, cells[4][4]); 
+                return;
+            }
+            let newRow = (selectedRow + dr + 9) % 9;
+            let newCol = (selectedCol + dc + 9) % 9;
+            selectCell(newRow, newCol, cells[newRow][newCol]);
+            if (navigator.vibrate) navigator.vibrate(5);
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key >= '1' && e.key <= '9') {
+                inputNum(parseInt(e.key));
+            } else if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0') {
+                inputNum(0);
+            } else if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
+                e.preventDefault(); moveSelection(-1, 0);
+            } else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
+                e.preventDefault(); moveSelection(1, 0);
+            } else if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+                e.preventDefault(); moveSelection(0, -1);
+            } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+                e.preventDefault(); moveSelection(0, 1);
+            }
+        });
+
+        function inputNum(num) {
+            if (!activeCell) {
+                setStatus(t.statusTapFirst, "#f87171"); 
+                return;
+            }
+            if (isSolved) clearSolutionColors();
+
+            if (num === 0) {
+                board[selectedRow][selectedCol] = 0;
+                activeCell.textContent = '';
+                activeCell.classList.remove('cell-hint');
+                setStatus(t.statusDeleted, "#cbd5e1");
+                saveState(); 
+                return;
+            }
+
+            let temp = board[selectedRow][selectedCol];
+            board[selectedRow][selectedCol] = 0;
+
+            if (!isValid(board, selectedRow, selectedCol, num)) {
+                board[selectedRow][selectedCol] = temp; 
+                activeCell.classList.remove('error-shake');
+                void activeCell.offsetWidth; 
+                activeCell.classList.add('error-shake');
+                if (navigator.vibrate) navigator.vibrate(100); 
+                setStatus(t.statusClash.replace('{num}', num), "#f87171");
+                return;
+            }
+
+            board[selectedRow][selectedCol] = num;
+            activeCell.textContent = num;
+            activeCell.classList.remove('cell-hint'); 
+            
+            saveState(); 
+
+            if (findEmpty(board) === null) {
+                setStatus(t.statusBoardFull, "#4ade80"); 
+            } else {
+                let randomMsg = t.successMsgs[Math.floor(Math.random() * t.successMsgs.length)];
+                setStatus(`${randomMsg}${t.statusArrows}`, "#6ee7b7"); 
+            }
+        }
+
+        function isValid(b, row, col, num) {
+            for (let i = 0; i < 9; i++) {
+                if (b[row][i] === num) return false;
+                if (b[i][col] === num) return false;
+            }
+            const sr = Math.floor(row / 3) * 3;
+            const sc = Math.floor(col / 3) * 3;
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    if (b[sr + i][sc + j] === num) return false;
+                }
+            }
+            return true;
+        }
+
+        function isValidStart(b) {
+            for (let r = 0; r < 9; r++) {
+                for (let c = 0; c < 9; c++) {
+                    let num = b[r][c];
+                    if (num !== 0) {
+                        b[r][c] = 0;
+                        if (!isValid(b, r, c, num)) { b[r][c] = num; return false; }
+                        b[r][c] = num;
+                    }
+                }
+            }
+            return true;
+        }
+
+        function findEmpty(b) {
+            for (let r = 0; r < 9; r++) {
+                for (let c = 0; c < 9; c++) {
+                    if (b[r][c] === 0) return [r, c];
+                }
+            }
+            return null;
+        }
+
+        function findSolutions(b, sols, limit = 10) {
+            if (sols.length >= limit) return;
+            const empty = findEmpty(b);
+            if (!empty) { sols.push(b.map(row => [...row])); return; }
+            const [r, c] = empty;
+            for (let num = 1; num <= 9; num++) {
+                if (isValid(b, r, c, num)) {
+                    b[r][c] = num;
+                    findSolutions(b, sols, limit);
+                    b[r][c] = 0;
+                }
+            }
+        }
+
+        // SPOILER LOGIC (Blinking fixed)
+        function useSpoiler() {
+            if (isSolved) clearSolutionColors();
+            if (!isValidStart(board)) {
+                setStatus(t.statusBoardErr, "#f87171");
+                return;
+            }
+            if (findEmpty(board) === null) {
+                setStatus(t.statusDone, "#4ade80");
+                return;
+            }
+
+            // Teks perantara (Mencari bocoran...) dihapus agar hitungan spoiler berubah dengan mulus tanpa kedip
+            setTimeout(() => {
+                let workingBoard = board.map(row => [...row]);
+                let sols = [];
+                findSolutions(workingBoard, sols, 10);
+
+                if (sols.length === 0) {
+                    setStatus(t.statusNoHint, "#f87171");
+                    return;
+                }
+
+                let sureHints = [];
+                for (let r = 0; r < 9; r++) {
+                    for (let c = 0; c < 9; c++) {
+                        if (board[r][c] === 0) {
+                            let val = sols[0][r][c];
+                            let isSure = true;
+                            for (let s = 1; s < sols.length; s++) {
+                                if (sols[s][r][c] !== val) { isSure = false; break; }
+                            }
+                            if (isSure) sureHints.push({ r, c, val });
+                        }
+                    }
+                }
+
+                if (sureHints.length === 0) {
+                    setStatus(t.statusGamblingOnly, "#fca5a5");
+                    return;
+                }
+
+                let hint = sureHints[Math.floor(Math.random() * sureHints.length)];
+                board[hint.r][hint.c] = hint.val;
+                cells[hint.r][hint.c].textContent = hint.val;
+                cells[hint.r][hint.c].classList.add('cell-hint'); 
+                
+                spoilerCount++;
+                saveState(); 
+                
+                selectCell(hint.r, hint.c, cells[hint.r][hint.c]);
+
+                if (findEmpty(board) === null) {
+                    setStatus(t.statusBoardFull, "#4ade80");
+                } else {
+                    setStatus(t.statusSpoilerAdded.replace('{count}', spoilerCount), "#fef08a");
+                }
+            }, 10);
+        }
+
+        // FULL SOLVE LOGIC
+        function solve() {
+            if (activeCell) {
+                activeCell.classList.remove('selected');
+                activeCell = null; selectedRow = -1; selectedCol = -1;
+            }
+            clearSolutionColors();
+
+            if (!isValidStart(board)) {
+                setStatus(t.statusBoardErr, "#f87171");
+                return;
+            }
+
+            if (findEmpty(board) === null) {
+                setStatus(t.statusDone, "#4ade80");
+                return;
+            }
+
+            let workingBoard = board.map(row => [...row]);
+            allSolutions = [];
+            currentSolIndex = 0;
+            
+            setStatus(t.statusFindingSolve, "#facc15");
+            
+            setTimeout(() => {
+                findSolutions(workingBoard, allSolutions, 10);
+
+                if (allSolutions.length === 0) {
+                    setStatus(t.statusNoSolution, "#f87171");
+                } else {
+                    isSolved = true;
+                    if (allSolutions.length === 1) {
+                        setStatus(t.statusDone100, "#4ade80");
+                        navPanel.classList.remove('show');
+                    } else {
+                        let plus = allSolutions.length === 10 ? '+' : '';
+                        setStatus(t.statusGamblingFound.replace('{count}', allSolutions.length + plus), "#fca5a5");
+                        navPanel.classList.add('show');
+                        updateNavUI();
+                    }
+                    renderSolutionInstantly(0);
+                }
+            }, 10);
+        }
+
+        function renderSolutionInstantly(index) {
+            const sol = allSolutions[index];
+            const totalSols = allSolutions.length;
+
+            for (let r = 0; r < 9; r++) {
+                for (let c = 0; c < 9; c++) {
+                    if (board[r][c] === 0) { 
+                        let val = sol[r][c];
+                        let isSure = true;
+
+                        if (totalSols > 1) {
+                            for (let s = 0; s < totalSols; s++) {
+                                if (allSolutions[s][r][c] !== allSolutions[0][r][c]) {
+                                    isSure = false;
+                                    break;
+                                }
+                            }
+                        }
+
+                        const cell = cells[r][c];
+                        cell.textContent = val;
+                        cell.classList.remove('cell-sure', 'cell-gamble');
+                        
+                        if (isSure) {
+                            cell.classList.add('cell-sure');
+                        } else {
+                            cell.classList.add('cell-gamble');
+                        }
+                    }
+                }
+            }
+        }
+
+        // NAVIGASI
+        function changeSolution(dir) {
+            currentSolIndex += dir;
+            if (currentSolIndex < 0) currentSolIndex = 0;
+            if (currentSolIndex >= allSolutions.length) currentSolIndex = allSolutions.length - 1;
+            
+            updateNavUI();
+            
+            const sol = allSolutions[currentSolIndex];
+            for (let r = 0; r < 9; r++) {
+                for (let c = 0; c < 9; c++) {
+                    if (board[r][c] === 0 && cells[r][c].classList.contains('cell-gamble')) {
+                        cells[r][c].textContent = sol[r][c];
+                    }
+                }
+            }
+        }
+
+        function updateNavUI() {
+            navText.textContent = t.navText.replace('{current}', currentSolIndex + 1).replace('{total}', allSolutions.length);
+            btnPrev.disabled = (currentSolIndex === 0);
+            btnNext.disabled = (currentSolIndex === allSolutions.length - 1);
+        }
+
+        function setStatus(msg, colorStr) {
+            statusEl.textContent = msg;
+            statusEl.style.color = colorStr;
+        }
+
+        function clearSolutionColors() {
+            isSolved = false;
+            navPanel.classList.remove('show');
+            for (let r = 0; r < 9; r++) {
+                for (let c = 0; c < 9; c++) {
+                    cells[r][c].classList.remove('cell-sure', 'cell-gamble', 'error-shake');
+                    if (board[r][c] === 0) cells[r][c].textContent = '';
+                }
+            }
+        }
+
+        function clearAll() {
+            isSolved = false;
+            navPanel.classList.remove('show');
+            spoilerCount = 0; 
+            board = Array.from({ length: 9 }, () => Array(9).fill(0));
+            for (let r = 0; r < 9; r++) {
+                for (let c = 0; c < 9; c++) {
+                    cells[r][c].textContent = '';
+                    cells[r][c].classList.remove('cell-sure', 'cell-gamble', 'cell-hint', 'selected', 'error-shake');
+                }
+            }
+            saveState(); 
+            selectCell(4, 4, cells[4][4]); 
+            setStatus(t.statusReset, "#cbd5e1");
+        }
+
+        function loadDemo() {
+            clearAll();
+            spoilerCount = 0; 
+            const demo = [
+                [5, 3, 0, 0, 7, 0, 0, 0, 0],
+                [6, 0, 0, 1, 9, 5, 0, 0, 0],
+                [0, 9, 8, 0, 0, 0, 0, 6, 0],
+                [8, 0, 0, 0, 6, 0, 0, 0, 3],
+                [4, 0, 0, 8, 0, 3, 0, 0, 1],
+                [7, 0, 0, 0, 2, 0, 0, 0, 6],
+                [0, 6, 0, 0, 0, 0, 2, 8, 0],
+                [0, 0, 0, 4, 1, 9, 0, 0, 5],
+                [0, 0, 0, 0, 8, 0, 0, 7, 0]
+            ];
+            for (let r = 0; r < 9; r++) {
+                for (let c = 0; c < 9; c++) {
+                    board[r][c] = demo[r][c];
+                    if (demo[r][c] !== 0) cells[r][c].textContent = demo[r][c];
+                }
+            }
+            saveState(); 
+            selectCell(0, 2, cells[0][2]); 
+            setStatus(t.statusDemo, "#93c5fd");
+        }
+
+        initGrid();
+
+    </script>
+</body>
+</html>
+
+
