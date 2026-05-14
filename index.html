@@ -309,6 +309,10 @@
         };
 
         let currentLang = localStorage.getItem('sudoku_lang') || 'id';
+        // Security enhancement: Validate client-side storage value to prevent crashes
+        if (!langData[currentLang]) {
+            currentLang = 'id';
+        }
         let t = langData[currentLang];
 
         const gridEl = document.getElementById('grid');
@@ -399,7 +403,16 @@
             const savedBoard = localStorage.getItem('sudoku_board_state');
             if (savedBoard) {
                 try {
-                    board = JSON.parse(savedBoard);
+                    let parsedBoard = JSON.parse(savedBoard);
+
+                    // Security enhancement: Validate client-side state structure
+                    if (!Array.isArray(parsedBoard) || parsedBoard.length !== 9 ||
+                        !parsedBoard.every(row => Array.isArray(row) && row.length === 9 &&
+                                           row.every(cell => typeof cell === 'number' && cell >= 0 && cell <= 9))) {
+                        throw new Error('Invalid board state');
+                    }
+
+                    board = parsedBoard;
                     spoilerCount = parseInt(localStorage.getItem('sudoku_spoiler_count')) || 0;
                     lastDemoIndex = parseInt(localStorage.getItem('sudoku_demo_idx')) || -1;
                     let hasData = false;
