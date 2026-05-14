@@ -717,15 +717,30 @@
         }
         const ALL_UNITS = getUnits();
 
-        function getPeers(r, c) {
-            let p = [];
-            for(let i=0;i<9;i++) {
-                if(i!==c) p.push({r, c:i});
-                if(i!==r) p.push({r:i, c});
+        // ⚡ Bolt: Precomputing peers to avoid array allocations during heavy backtracking
+        // This makes `getPeers` an O(1) lookup, massively speeding up logic deductions.
+        function generateAllPeers() {
+            let all = [];
+            for(let r=0; r<9; r++) {
+                let row = [];
+                for(let c=0; c<9; c++) {
+                    let p = [];
+                    for(let i=0;i<9;i++) {
+                        if(i!==c) p.push({r, c:i});
+                        if(i!==r) p.push({r:i, c});
+                    }
+                    let br=Math.floor(r/3)*3, bc=Math.floor(c/3)*3;
+                    for(let i=0;i<3;i++) for(let j=0;j<3;j++) if(br+i!==r && bc+j!==c) p.push({r:br+i, c:bc+j});
+                    row.push(p);
+                }
+                all.push(row);
             }
-            let br=Math.floor(r/3)*3, bc=Math.floor(c/3)*3;
-            for(let i=0;i<3;i++) for(let j=0;j<3;j++) if(br+i!==r && bc+j!==c) p.push({r:br+i, c:bc+j});
-            return p;
+            return all;
+        }
+        const PRECOMPUTED_PEERS = generateAllPeers();
+
+        function getPeers(r, c) {
+            return PRECOMPUTED_PEERS[r][c];
         }
 
         function doNakedSingle(b, c) {
@@ -862,7 +877,10 @@
                 }
                 for(let a of p1) for(let b of p2) {
                     if(a.z===b.z && (a.r!==b.r || a.c!==b.c)) {
-                        let z=a.z, isect = getPeers(a.r,a.c).filter(c1 => getPeers(b.r,b.c).some(c2=>c1.r===c2.r && c1.c===c2.c));
+                        // ⚡ Bolt: Extracted `getPeers(b.r, b.c)` from the filter loop below
+                        // to prevent unnecessary redundant lookups.
+                        let z=a.z, bPeers = getPeers(b.r, b.c);
+                        let isect = getPeers(a.r,a.c).filter(c1 => bPeers.some(c2=>c1.r===c2.r && c1.c===c2.c));
                         for(let i of isect) if((i.r!==pv.r || i.c!==pv.c) && cands[i.r][i.c].has(z)) {
                             cands[i.r][i.c].delete(z); reduced=true;
                         }
