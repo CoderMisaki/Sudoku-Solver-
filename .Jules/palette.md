@@ -1,3 +1,5 @@
 ## 2023-10-27 - Restoring Keyboard Focus and Semantic Labels
 **Learning:** In applications using utility-first frameworks or custom CSS resets, the default `outline` is often entirely removed (e.g., `outline: none;`), which completely breaks keyboard navigation visibility. Additionally, highly iconic UIs frequently neglect descriptive text for assistive tech.
-**Action:** Always verify that interactive components (buttons, cells) have a `:focus-visible` state explicitly defined when `outline` is removed, and ensure all icon-only or abbreviation-only controls possess descriptive `aria-label`s.
+**Action:** Always verify that interactive components (buttons, cells) have a `:focus-visible` state explicitly defined when `outline` is removed, and ensure all icon-only or abbreviation-only controls possess descriptive `aria-label`s.## 2024-05-19 - ARIA Live Regions for Dynamic Status Updates
+**Learning:** In highly interactive single-page applications (SPAs) like games, visual status updates (e.g., "Board full!", "Clashing numbers!") are completely missed by screen readers unless properly marked up.
+**Action:** Always identify elements that serve as dynamic feedback areas and upgrade them with `role="status"` and `aria-live="polite"` to ensure blind users receive the same immediate feedback as sighted users.
