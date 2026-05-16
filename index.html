@@ -355,7 +355,14 @@
 
         function rebuildCandidates() {
             for(let r=0; r<9; r++) for(let c=0; c<9; c++) {
-                candsMap[r][c] = new Set([1,2,3,4,5,6,7,8,9]);
+                // ⚡ Bolt: Reuse Set objects instead of allocating new memory every time we rebuild.
+                // Reduces GC overhead during highly frequent operations like undo/redo and editing.
+                if (!candsMap[r][c]) {
+                    candsMap[r][c] = new Set([1,2,3,4,5,6,7,8,9]);
+                } else {
+                    candsMap[r][c].clear();
+                    for(let v=1; v<=9; v++) candsMap[r][c].add(v);
+                }
             }
             for(let r=0; r<9; r++) {
                 for(let c=0; c<9; c++) {
