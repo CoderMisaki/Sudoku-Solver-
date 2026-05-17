@@ -266,7 +266,7 @@
 
     <!-- MODAL IMPORT / EXPORT -->
     <div id="io-modal" class="modal-overlay">
-        <div class="modal-content">
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="modal-title">
             <h2 id="modal-title" style="font-weight: bold; font-size: 1.1rem; text-align: center; color: white; margin: 0;">Import / Export Puzzle</h2>
             <textarea id="io-textarea" placeholder="Tempel angka di sini..."></textarea>
             <div id="modal-error" class="modal-error-msg"></div>
@@ -349,6 +349,7 @@
         let isSolved = false;
         let spoilerCount = 0;
         let lastDemoIndex = -1; // Mencegah puzzle contoh yang sama muncul berurutan
+        let previousActiveElement = null;
 
         // --- SISTEM KANDIDAT GLOBAL (CONSTRAINT PROPAGATION) ---
         let candsMap = Array(9).fill().map(() => Array(9).fill().map(() => new Set([1,2,3,4,5,6,7,8,9])));
@@ -481,7 +482,10 @@
         }
 
         document.addEventListener('keydown', (e) => {
-            if (ioModal.classList.contains('active')) return; 
+            if (ioModal.classList.contains('active')) {
+                if (e.key === 'Escape') closeModal();
+                return;
+            }
             if (e.key >= '1' && e.key <= '9') inputNum(parseInt(e.key));
             else if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0') inputNum(0);
             else if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') { e.preventDefault(); moveSelection(-1, 0); }
@@ -553,12 +557,20 @@
         }
 
         function openModal() {
+            previousActiveElement = document.activeElement;
             modalError.textContent = ""; 
             ioTextarea.value = getFormattedPuzzle();
             ioModal.classList.add('active');
+            setTimeout(() => ioTextarea.focus(), 10);
         }
 
-        function closeModal() { ioModal.classList.remove('active'); modalError.textContent = ""; }
+        function closeModal() {
+            ioModal.classList.remove('active');
+            modalError.textContent = "";
+            if (previousActiveElement) {
+                previousActiveElement.focus();
+            }
+        }
 
         function copyPuzzle() {
             ioTextarea.value = getFormattedPuzzle(); 
