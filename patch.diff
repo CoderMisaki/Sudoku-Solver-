@@ -1,0 +1,14 @@
+--- index.html
++++ index.html
+@@ -228,3 +228,3 @@
+         <!-- Status -->
+-        <div id="status" style="font-size: 0.8rem; margin-bottom: 8px; height: 18px; color: #93c5fd; font-weight: bold; text-align: center; width: 100%; white-space: nowrap;">
++        <div id="status" role="status" aria-live="polite" style="font-size: 0.8rem; margin-bottom: 8px; height: 18px; color: #93c5fd; font-weight: bold; text-align: center; width: 100%; white-space: nowrap;">
+             Gunakan panah untuk memindah kotak.
+@@ -269,4 +269,4 @@
+             <h2 id="modal-title" style="font-weight: bold; font-size: 1.1rem; text-align: center; color: white; margin: 0;">Import / Export Puzzle</h2>
+-            <textarea id="io-textarea" placeholder="Tempel angka di sini..."></textarea>
+-            <div id="modal-error" class="modal-error-msg"></div>
++            <textarea id="io-textarea" placeholder="Tempel angka di sini..." aria-label="Puzzle data"></textarea>
++            <div id="modal-error" class="modal-error-msg" role="alert" aria-live="assertive"></div>
+             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
