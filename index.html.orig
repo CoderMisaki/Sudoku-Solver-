@@ -7,9 +7,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* OPTIMASI MAKSIMAL: Mencegah delay, blokir seleksi teks */
-        * { 
-            -webkit-tap-highlight-color: transparent; 
-            box-sizing: border-box; 
+        * {
+            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
             touch-action: manipulation;
             user-select: none;
             -webkit-user-select: none;
@@ -17,7 +17,7 @@
 
         body {
             margin: 0;
-            background-color: #0f172a; 
+            background-color: #0f172a;
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -28,7 +28,7 @@
 
         .app-container {
             width: 100%;
-            max-width: 420px; 
+            max-width: 420px;
             padding: 12px;
             display: flex;
             flex-direction: column;
@@ -37,7 +37,7 @@
         }
 
         .nav-panel {
-            display: none; 
+            display: none;
             width: 100%;
             justify-content: space-between;
             align-items: center;
@@ -47,7 +47,7 @@
             padding: 4px 10px;
             margin-bottom: 10px;
         }
-        .nav-panel.show { display: flex; } 
+        .nav-panel.show { display: flex; }
 
         .numpad-grid {
             display: grid;
@@ -73,7 +73,7 @@
             border-radius: 8px;
             margin-bottom: 12px;
         }
-        
+
         .glow-wrapper::before {
             content: "";
             position: absolute;
@@ -83,7 +83,7 @@
             opacity: 0.75;
             z-index: 0;
             border-radius: 12px;
-            transform: translateZ(0); 
+            transform: translateZ(0);
         }
 
         .sudoku-grid {
@@ -91,17 +91,17 @@
             z-index: 1;
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 6px; 
-            background-color: transparent; 
+            gap: 6px;
+            background-color: transparent;
             border-radius: 6px;
         }
 
         .sudoku-block {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            background-color: #1e293b; 
-            gap: 1px; 
-            border: 2px solid #0f172a; 
+            background-color: #1e293b;
+            gap: 1px;
+            border: 2px solid #0f172a;
             border-radius: 6px;
             overflow: hidden;
             box-shadow: 0 4px 8px rgba(0,0,0,0.3);
@@ -112,7 +112,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.35rem; 
+            font-size: 1.35rem;
             font-weight: 700;
             cursor: pointer;
             aspect-ratio: 1 / 1;
@@ -125,15 +125,15 @@
         }
 
         .selected { background-color: #bfdbfe !important; }
-        .cell-sure { background-color: #fde047 !important; color: #000; } 
-        .cell-gamble { background-color: #fca5a5 !important; color: #000; } 
-        .cell-hint { background-color: #fef08a !important; color: #000; } 
+        .cell-sure { background-color: #fde047 !important; color: #000; }
+        .cell-gamble { background-color: #fca5a5 !important; color: #000; }
+        .cell-hint { background-color: #fef08a !important; color: #000; }
 
         .btn-instant {
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 8px; 
+            border-radius: 8px;
             font-weight: bold;
             cursor: pointer;
             border: none;
@@ -143,7 +143,7 @@
             outline: 2px solid #3b82f6;
             outline-offset: 2px;
         }
-        
+
         .btn-numpad { background-color: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1; font-size: 1.25rem; height: 40px;}
         .btn-numpad:active { background-color: #cbd5e1; transform: scale(0.96); }
 
@@ -163,8 +163,8 @@
         .btn-solve:active { background-color: #15803d; transform: scale(0.98); }
 
         .btn-header {
-            width: 42px; height: 30px; background: #1e293b; border: 1px solid #334155; 
-            border-radius: 6px; font-weight: bold; font-size: 0.8rem; color: #cbd5e1; 
+            width: 42px; height: 30px; background: #1e293b; border: 1px solid #334155;
+            border-radius: 6px; font-weight: bold; font-size: 0.8rem; color: #cbd5e1;
             cursor: pointer; display: flex; align-items: center; justify-content: center;
         }
         .btn-header:focus-visible {
@@ -204,10 +204,10 @@
         .error-shake { animation: shake 0.25s ease-in-out; }
     </style>
 </head>
-<body> 
+<body>
 
     <div class="app-container">
-        
+
         <!-- Header -->
         <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 12px;">
             <button onclick="openModal()" class="btn-header" aria-label="Import or Export Puzzle">I/O</button>
@@ -222,12 +222,12 @@
         </div>
 
         <!-- Papan Grid -->
-        <div class="glow-wrapper"> 
+        <div class="glow-wrapper">
             <div id="grid" class="sudoku-grid"></div>
         </div>
 
         <!-- Status -->
-        <div id="status" role="status" aria-live="polite" style="font-size: 0.8rem; margin-bottom: 8px; height: 18px; color: #93c5fd; font-weight: bold; text-align: center; width: 100%; white-space: nowrap;">
+        <div id="status" style="font-size: 0.8rem; margin-bottom: 8px; height: 18px; color: #93c5fd; font-weight: bold; text-align: center; width: 100%; white-space: nowrap;">
             Gunakan panah untuk memindah kotak.
         </div>
 
@@ -240,7 +240,7 @@
         </div>
 
         <!-- Numpad -->
-        <div class="numpad-grid"> 
+        <div class="numpad-grid">
             <button onclick="inputNum(1)" class="btn-instant btn-numpad">1</button>
             <button onclick="inputNum(2)" class="btn-instant btn-numpad">2</button>
             <button onclick="inputNum(3)" class="btn-instant btn-numpad">3</button>
@@ -268,8 +268,8 @@
     <div id="io-modal" class="modal-overlay">
         <div class="modal-content">
             <h2 id="modal-title" style="font-weight: bold; font-size: 1.1rem; text-align: center; color: white; margin: 0;">Import / Export Puzzle</h2>
-            <textarea id="io-textarea" placeholder="Tempel angka di sini..." aria-label="Puzzle data"></textarea>
-            <div id="modal-error" class="modal-error-msg" role="alert" aria-live="assertive"></div>
+            <textarea id="io-textarea" placeholder="Tempel angka di sini..."></textarea>
+            <div id="modal-error" class="modal-error-msg"></div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                 <button id="btn-paste" onclick="pastePuzzle()" class="btn-instant btn-action" style="height: 38px; font-size: 0.9rem;">Tempel</button>
                 <button id="btn-clear-txt" onclick="clearTextarea()" class="btn-instant btn-del" style="height: 38px; font-size: 0.9rem;">Hapus Teks</button>
@@ -288,13 +288,13 @@
                 statusClash: "Gagal: Angka {num} berbenturan!", statusBoardFull: "Papan terisi penuh! 🎉", statusArrows: " (Gunakan panah)",
                 statusBoardErr: "Papan error, perbaiki angka yang bentrok dulu!", statusFindingSolve: "Menganalisa Algorithm X (DLX)...",
                 statusNoSolution: "Mentok! Tidak ada solusi valid.", statusNoHint: "Mentok! Papan ini tidak punya solusi.",
-                statusGamblingOnly: "Semua logika mentok, tersisa gambling. Tap Selesaikan", 
+                statusGamblingOnly: "Semua logika mentok, tersisa gambling. Tap Selesaikan",
                 statusSpoilerAdded: "Spoiler ke-{count}: {strat}",
                 statusDone: "Selesai! Papan sudah penuh dan benar.", statusDone100: "Selesai! 100% Pasti via DLX.",
                 statusGamblingFound: "Ditemukan {count} variasi (DLX). Awas Gambling!", statusReset: "Papan di-reset. Siap dimainkan.",
                 statusDemo: "Papan contoh dimuat secara acak. Coba tap Spoiler!", statusRestored: "Sesi sebelumnya berhasil dipulihkan.",
                 navText: "Solusi {current} / {total}",
-                ioTitle: "Import / Export Puzzle", ioPlaceholder: "Tempel angka di sini...\n(Otomatis menyaring angka)", 
+                ioTitle: "Import / Export Puzzle", ioPlaceholder: "Tempel angka di sini...\n(Otomatis menyaring angka)",
                 btnImport: "Impor", btnCopy: "Salin", btnClose: "Tutup", btnPaste: "Tempel", btnClearTxt: "Hapus",
                 ioErrLength: "Harus tepat 81 angka! (Saat ini: {len})", ioCopied: "Disalin ke Clipboard!",
                 ioErrClash: "Gagal Import: Ada angka yang berbenturan!", ioPasteWarn: "Gunakan tap-tahan untuk menempel teks.",
@@ -306,13 +306,13 @@
                 statusClash: "Failed: Number {num} is clashing!", statusBoardFull: "Board is full! 🎉", statusArrows: " (Use arrows)",
                 statusBoardErr: "Board error, fix clashing numbers first!", statusFindingSolve: "Analyzing via Algorithm X (DLX)...",
                 statusNoSolution: "Stuck! No valid solution.", statusNoHint: "Stuck! This board has no solution.",
-                statusGamblingOnly: "Logic stuck, gambling remains. Tap Solve.", 
+                statusGamblingOnly: "Logic stuck, gambling remains. Tap Solve.",
                 statusSpoilerAdded: "Hint #{count}: {strat}",
                 statusDone: "Done! Board is full and correct.", statusDone100: "Done! 100% Sure via DLX.",
                 statusGamblingFound: "Found {count} variations (DLX). Gambling!", statusReset: "Board reset. Ready to play.",
                 statusDemo: "Random demo loaded. Try tapping Hint!", statusRestored: "Previous session restored.",
                 navText: "Solution {current} / {total}",
-                ioTitle: "Import / Export Puzzle", ioPlaceholder: "Paste numbers here...\n(Auto extracts digits)", 
+                ioTitle: "Import / Export Puzzle", ioPlaceholder: "Paste numbers here...\n(Auto extracts digits)",
                 btnImport: "Import", btnCopy: "Copy", btnClose: "Close", btnPaste: "Paste", btnClearTxt: "Clear",
                 ioErrLength: "Must be exactly 81 numbers! (Current: {len})", ioCopied: "Copied to Clipboard!",
                 ioErrClash: "Import Failed: Clashing numbers detected!", ioPasteWarn: "Use tap and hold to paste.",
@@ -341,7 +341,7 @@
         let activeCell = null;
         let selectedRow = -1;
         let selectedCol = -1;
-        
+
         let board = Array.from({ length: 9 }, () => Array(9).fill(0));
         let certaintyMap = Array.from({ length: 9 }, () => Array(9).fill(false));
         let allSolutions = [];
@@ -481,7 +481,7 @@
         }
 
         document.addEventListener('keydown', (e) => {
-            if (ioModal.classList.contains('active')) return; 
+            if (ioModal.classList.contains('active')) return;
             if (e.key >= '1' && e.key <= '9') inputNum(parseInt(e.key));
             else if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0') inputNum(0);
             else if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') { e.preventDefault(); moveSelection(-1, 0); }
@@ -498,9 +498,9 @@
                 board[selectedRow][selectedCol] = 0;
                 activeCell.textContent = '';
                 activeCell.classList.remove('cell-hint');
-                rebuildCandidates(); 
+                rebuildCandidates();
                 setStatus(t.statusDeleted, "#cbd5e1");
-                saveState(); 
+                saveState();
                 return;
             }
 
@@ -508,33 +508,33 @@
             board[selectedRow][selectedCol] = 0;
 
             if (!isValid(board, selectedRow, selectedCol, num)) {
-                board[selectedRow][selectedCol] = temp; 
+                board[selectedRow][selectedCol] = temp;
                 activeCell.classList.remove('error-shake');
-                void activeCell.offsetWidth; 
+                void activeCell.offsetWidth;
                 activeCell.classList.add('error-shake');
-                if (navigator.vibrate) navigator.vibrate(100); 
+                if (navigator.vibrate) navigator.vibrate(100);
                 setStatus(t.statusClash.replace('{num}', num), "#f87171");
                 return;
             }
 
             board[selectedRow][selectedCol] = num;
             activeCell.textContent = num;
-            activeCell.classList.remove('cell-hint'); 
-            
+            activeCell.classList.remove('cell-hint');
+
             if(temp === 0) {
                 propagateCandidate(selectedRow, selectedCol, num);
                 candsMap[selectedRow][selectedCol].clear();
             } else {
                 rebuildCandidates();
             }
-            
-            saveState(); 
+
+            saveState();
 
             if (findEmpty(board) === null) {
-                setStatus(t.statusBoardFull, "#4ade80"); 
+                setStatus(t.statusBoardFull, "#4ade80");
             } else {
                 let randomMsg = t.successMsgs[Math.floor(Math.random() * t.successMsgs.length)];
-                setStatus(`${randomMsg}${t.statusArrows}`, "#6ee7b7"); 
+                setStatus(`${randomMsg}${t.statusArrows}`, "#6ee7b7");
             }
         }
 
@@ -544,16 +544,16 @@
             for(let r = 0; r < 9; r++) {
                 for(let c = 0; c < 9; c++) {
                     str += board[r][c];
-                    if (c === 2 || c === 5) str += " "; 
+                    if (c === 2 || c === 5) str += " ";
                 }
-                if (r === 2 || r === 5) str += "\n\n"; 
+                if (r === 2 || r === 5) str += "\n\n";
                 else if (r < 8) str += "\n";
             }
             return str;
         }
 
         function openModal() {
-            modalError.textContent = ""; 
+            modalError.textContent = "";
             ioTextarea.value = getFormattedPuzzle();
             ioModal.classList.add('active');
         }
@@ -561,7 +561,7 @@
         function closeModal() { ioModal.classList.remove('active'); modalError.textContent = ""; }
 
         function copyPuzzle() {
-            ioTextarea.value = getFormattedPuzzle(); 
+            ioTextarea.value = getFormattedPuzzle();
             ioTextarea.select();
             document.execCommand('copy');
             document.getElementById('btn-copy').textContent = t.ioCopied;
@@ -586,7 +586,7 @@
             let tempBoard = Array.from({ length: 9 }, () => Array(9).fill(0));
             let idx = 0;
             for(let r=0; r<9; r++) for(let c=0; c<9; c++) tempBoard[r][c] = parseInt(cleanStr[idx++]);
-            
+
             if (!isValidStart(tempBoard)) { modalError.textContent = t.ioErrClash; return; }
 
             clearAll();
@@ -636,7 +636,7 @@
         }
 
         // =====================================================================
-        // ALGORITHM X (DANCING LINKS - DLX) ENGINE 
+        // ALGORITHM X (DANCING LINKS - DLX) ENGINE
         // =====================================================================
         class DLXNode {
             constructor(c) {
@@ -669,7 +669,7 @@
                     node.U = col.U; node.D = col;
                     col.U.D = node; col.U = node;
                     col.size++;
-                    if (!first) { first = node; } 
+                    if (!first) { first = node; }
                     else {
                         node.L = first.L; node.R = first;
                         first.L.R = node; first.L = node;
@@ -726,7 +726,7 @@
         }
 
         // =====================================================================
-        // LOGICAL DEDUCTION ENGINE 
+        // LOGICAL DEDUCTION ENGINE
         // =====================================================================
         function getUnits() {
             let u = [];
@@ -793,11 +793,11 @@
                 for(let v=1; v<=9; v++) {
                     let hasV = bCells.filter(cell => cands[cell.r][cell.c].has(v));
                     if(hasV.length > 1) {
-                        if(hasV.every(cell => cell.r === hasV[0].r)) { 
+                        if(hasV.every(cell => cell.r === hasV[0].r)) {
                             let row = hasV[0].r;
                             for(let col=0; col<9; col++) if(Math.floor(col/3) !== bc && cands[row][col].has(v)) { cands[row][col].delete(v); reduced=true; }
                         }
-                        if(hasV.every(cell => cell.c === hasV[0].c)) { 
+                        if(hasV.every(cell => cell.c === hasV[0].c)) {
                             let col = hasV[0].c;
                             for(let row=0; row<9; row++) if(Math.floor(row/3) !== br && cands[row][col].has(v)) { cands[row][col].delete(v); reduced=true; }
                         }
@@ -918,14 +918,14 @@
         function getLogicalHint(b) {
             let wCands = Array(9).fill().map((_,r)=>Array(9).fill().map((_,c)=>new Set(candsMap[r][c])));
             let strats = [];
-            
+
             while(true) {
                 let ans = doNakedSingle(b, wCands) || doHiddenSingle(b, wCands);
-                if(ans) { 
-                    ans.strat += (strats.length ? ` (setelah ${strats[strats.length-1]})` : ''); 
-                    return ans; 
+                if(ans) {
+                    ans.strat += (strats.length ? ` (setelah ${strats[strats.length-1]})` : '');
+                    return ans;
                 }
-                
+
                 let red = intersectRemoval(wCands) || nakedPairsTriples(wCands, 2) || nakedPairsTriples(wCands, 3) || hiddenPair(wCands) || xWing(wCands) || xyWing(wCands);
                 if(red) { strats.push(red); continue; }
                 break;
@@ -944,11 +944,11 @@
                 if (logicAns) {
                     board[logicAns.r][logicAns.c] = logicAns.val;
                     cells[logicAns.r][logicAns.c].textContent = logicAns.val;
-                    cells[logicAns.r][logicAns.c].classList.add('cell-hint'); 
-                    propagateCandidate(logicAns.r, logicAns.c, logicAns.val); 
+                    cells[logicAns.r][logicAns.c].classList.add('cell-hint');
+                    propagateCandidate(logicAns.r, logicAns.c, logicAns.val);
                     candsMap[logicAns.r][logicAns.c].clear();
-                    
-                    spoilerCount++; saveState(); 
+
+                    spoilerCount++; saveState();
                     selectCell(logicAns.r, logicAns.c, cells[logicAns.r][logicAns.c]);
                     setStatus(t.statusSpoilerAdded.replace('{count}', spoilerCount).replace('{strat}', logicAns.strat), "#fef08a");
                     return;
@@ -998,12 +998,12 @@
 
                 board[foundHint.r][foundHint.c] = foundHint.val;
                 cells[foundHint.r][foundHint.c].textContent = foundHint.val;
-                cells[foundHint.r][foundHint.c].classList.add('cell-hint'); 
-                
+                cells[foundHint.r][foundHint.c].classList.add('cell-hint');
+
                 propagateCandidate(foundHint.r, foundHint.c, foundHint.val);
                 candsMap[foundHint.r][foundHint.c].clear();
 
-                spoilerCount++; saveState(); 
+                spoilerCount++; saveState();
                 selectCell(foundHint.r, foundHint.c, cells[foundHint.r][foundHint.c]);
                 setStatus(t.statusSpoilerAdded.replace('{count}', spoilerCount).replace('{strat}', 'DLX Algorithm'), "#fef08a");
             }, 5);
@@ -1019,29 +1019,29 @@
             allSolutions = [];
             currentSolIndex = 0;
             setStatus(t.statusFindingSolve, "#facc15");
-            
+
             setTimeout(() => {
                 let header = buildDLX(board);
                 let DLX_SearchAll = (k, solution) => {
-                    if (allSolutions.length >= 150) return; 
-                    if (header.R === header) { 
+                    if (allSolutions.length >= 150) return;
+                    if (header.R === header) {
                         let b = Array.from({ length: 9 }, () => Array(9).fill(0));
                         for(let s of solution) b[s.r][s.c] = s.v;
                         allSolutions.push(b);
-                        return; 
+                        return;
                     }
                     let c = header.R;
                     for (let j = c.R; j !== header; j = j.R) if (j.size < c.size) c = j;
                     if (c.size === 0) return;
                     cover(c);
-                    
+
                     let rows = [];
                     for (let r = c.D; r !== c; r = r.D) rows.push(r);
                     for (let i = rows.length - 1; i > 0; i--) {
                         const j = Math.floor(Math.random() * (i + 1));
                         [rows[i], rows[j]] = [rows[j], rows[i]];
                     }
-                    
+
                     for (let r of rows) {
                         solution.push(r.rowID);
                         for (let j = r.R; j !== r; j = j.R) cover(j.C);
@@ -1051,7 +1051,7 @@
                     }
                     uncover(c);
                 };
-                
+
                 DLX_SearchAll(0, []);
 
                 if (allSolutions.length === 0) {
@@ -1084,22 +1084,22 @@
                     }
                     renderSolutionInstantly(0);
                 }
-            }, 50); 
+            }, 50);
         }
 
         function renderSolutionInstantly(index) {
             const sol = allSolutions[index];
             for (let r = 0; r < 9; r++) {
                 for (let c = 0; c < 9; c++) {
-                    if (board[r][c] === 0) { 
+                    if (board[r][c] === 0) {
                         let isSure = certaintyMap[r][c];
                         const cell = cells[r][c];
                         if (isSure) {
-                            cell.textContent = allSolutions[0][r][c]; 
+                            cell.textContent = allSolutions[0][r][c];
                             cell.classList.add('cell-sure');
                             cell.classList.remove('cell-gamble');
                         } else {
-                            cell.textContent = sol[r][c]; 
+                            cell.textContent = sol[r][c];
                             cell.classList.add('cell-gamble');
                             cell.classList.remove('cell-sure');
                         }
@@ -1148,7 +1148,7 @@
         function clearAll() {
             isSolved = false;
             navPanel.classList.remove('show');
-            spoilerCount = 0; 
+            spoilerCount = 0;
             board = Array.from({ length: 9 }, () => Array(9).fill(0));
             certaintyMap = Array.from({ length: 9 }, () => Array(9).fill(false));
             for (let r = 0; r < 9; r++) {
@@ -1158,15 +1158,15 @@
                 }
             }
             rebuildCandidates();
-            saveState(); 
-            selectCell(4, 4, cells[4][4]); 
+            saveState();
+            selectCell(4, 4, cells[4][4]);
             setStatus(t.statusReset, "#cbd5e1");
         }
 
         // --- FITUR CONTOH DINAMIS ---
         function loadDemo() {
             clearAll();
-            spoilerCount = 0; 
+            spoilerCount = 0;
 
             // BANK PUZZLE (Berisi berbagai tingkat kesulitan, dari mudah hingga gambling/cacat)
             const puzzleBank = [
@@ -1187,7 +1187,7 @@
             do {
                 randIdx = Math.floor(Math.random() * puzzleBank.length);
             } while (randIdx === lastDemoIndex && puzzleBank.length > 1);
-            
+
             lastDemoIndex = randIdx; // Simpan indeks yang baru terpilih
 
             const demoStr = puzzleBank[randIdx];
@@ -1198,10 +1198,10 @@
                     if (board[r][c] !== 0) cells[r][c].textContent = board[r][c];
                 }
             }
-            
+
             rebuildCandidates();
-            saveState(); 
-            selectCell(0, 2, cells[0][2]); 
+            saveState();
+            selectCell(0, 2, cells[0][2]);
             setStatus(t.statusDemo, "#93c5fd");
         }
 
@@ -1210,5 +1210,3 @@
     </script>
 </body>
 </html>
-
-
