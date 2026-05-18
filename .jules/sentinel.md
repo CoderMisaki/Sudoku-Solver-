@@ -2,3 +2,7 @@
 **Vulnerability:** The application blindly parsed and trusted `localStorage` data (`sudoku_lang` and `sudoku_board_state`) without verifying its structure or content.
 **Learning:** Client-side storage (`localStorage`, `sessionStorage`, cookies) can be modified by the user or an attacker. If the application logic assumes specific structures (like nested arrays or keys in a dictionary) and encounters unexpected types, it leads to app-breaking exceptions (e.g., `TypeError` when accessing properties on undefined language data, or errors during array iteration).
 **Prevention:** Always treat data retrieved from client-side storage as untrusted user input. Implement structural and type validation before assigning it to application state variables. Fail securely by falling back to safe defaults or discarding the corrupted state.
+## 2024-05-24 - Require Unsafe-Inline for Vanilla JS SPAs with CDN
+**Vulnerability:** Missing Content Security Policy (CSP) headers leaving the application vulnerable to basic Cross-Site Scripting (XSS) attacks.
+**Learning:** For a single-file application architecture heavily dependent on CDNs (like Tailwind) and inline `<script>` tags, a strict CSP will break functionality. You must specifically whitelist `unsafe-inline` for both scripts and styles, and the CDN domains (`https://cdn.tailwindcss.com`) to allow rendering.
+**Prevention:** Always test CSP headers locally and inspect console errors to verify they don't inadvertently block essential inline scripts or external resources required by the architecture.
