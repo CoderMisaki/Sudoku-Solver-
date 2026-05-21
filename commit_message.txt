@@ -1,0 +1,5 @@
+🧪 [Add tests for intersectRemoval]
+
+🎯 **What:** The intersectRemoval logic deduction function in index.html lacked corresponding tests. Added a standalone Node.js test file to cover this logic.
+📊 **Coverage:** Covered 3 distinct scenarios: Pointing Row (Box-Line), Pointing Col (Box-Line), and No Reduction (negative case).
+✨ **Result:** Improved test coverage for Sudoku logical deductions and established a pattern to test functions manually by extracting logic into Node.js test scripts.
