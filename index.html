@@ -560,12 +560,17 @@
 
         function closeModal() { ioModal.classList.remove('active'); modalError.textContent = ""; }
 
-        function copyPuzzle() {
-            ioTextarea.value = getFormattedPuzzle(); 
+        async function copyPuzzle() {
+            const puzzleStr = getFormattedPuzzle();
+            ioTextarea.value = puzzleStr;
             ioTextarea.select();
-            document.execCommand('copy');
-            document.getElementById('btn-copy').textContent = t.ioCopied;
-            setTimeout(() => { document.getElementById('btn-copy').textContent = t.btnCopy; }, 2000);
+            try {
+                await navigator.clipboard.writeText(puzzleStr);
+                document.getElementById('btn-copy').textContent = t.ioCopied;
+                setTimeout(() => { document.getElementById('btn-copy').textContent = t.btnCopy; }, 2000);
+            } catch (err) {
+                console.error('Failed to copy: ', err);
+            }
         }
 
         function clearTextarea() { ioTextarea.value = ""; ioTextarea.focus(); modalError.textContent = ""; }
