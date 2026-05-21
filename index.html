@@ -1205,6 +1205,27 @@
             setStatus(t.statusDemo, "#93c5fd");
         }
 
+        function testNakedPairsTriples() {
+            function createEmptyCands() {
+                let cands = [];
+                for(let r=0; r<9; r++) { cands[r] = []; for(let c=0; c<9; c++) cands[r][c] = new Set([1,2,3,4,5,6,7,8,9]); }
+                return cands;
+            }
+
+            let c2 = createEmptyCands();
+            c2[0][0] = new Set([1, 2]); c2[0][1] = new Set([1, 2]);
+            console.assert(nakedPairsTriples(c2, 2) === "Naked Pair", "Naked Pair should be detected");
+            console.assert(!c2[0][2].has(1) && !c2[0][2].has(2) && c2[0][2].has(3), "Naked Pair should eliminate candidates");
+
+            let c3 = createEmptyCands();
+            c3[2][0] = new Set([1, 2]); c3[2][1] = new Set([2, 3]); c3[2][2] = new Set([1, 3]);
+            console.assert(nakedPairsTriples(c3, 3) === "Naked Triple", "Naked Triple should be detected");
+            console.assert(!c3[2][3].has(1) && !c3[2][3].has(2) && !c3[2][3].has(3) && c3[2][3].has(4), "Naked Triple should eliminate candidates");
+
+            console.log("nakedPairsTriples tests passed");
+        }
+        testNakedPairsTriples();
+
         initGrid();
 
     </script>
