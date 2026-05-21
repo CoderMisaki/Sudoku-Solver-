@@ -815,11 +815,14 @@
                     for(let i=0; i<eli.length; i++) for(let j=i+1; j<eli.length; j++) {
                         let s1 = cands[eli[i].r][eli[i].c], s2 = cands[eli[j].r][eli[j].c];
                         if (s1.size===2 && s2.size===2) {
-                            let a1=Array.from(s1), a2=Array.from(s2);
-                            if(a1[0]===a2[0] && a1[1]===a2[1]) {
+                            // ⚡ Bolt: Use iterators instead of Array.from to avoid allocations in hot loop
+                            let it = s1.values();
+                            let v1 = it.next().value;
+                            let v2 = it.next().value;
+                            if(s2.has(v1) && s2.has(v2)) {
                                 for(let cell of unit) if(cell!==eli[i] && cell!==eli[j]) {
-                                    if(cands[cell.r][cell.c].has(a1[0])) { cands[cell.r][cell.c].delete(a1[0]); reduced=true; }
-                                    if(cands[cell.r][cell.c].has(a1[1])) { cands[cell.r][cell.c].delete(a1[1]); reduced=true; }
+                                    if(cands[cell.r][cell.c].has(v1)) { cands[cell.r][cell.c].delete(v1); reduced=true; }
+                                    if(cands[cell.r][cell.c].has(v2)) { cands[cell.r][cell.c].delete(v2); reduced=true; }
                                 }
                             }
                         }
