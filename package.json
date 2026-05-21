@@ -1,0 +1,28 @@
+{
+  "dependencies": {
+    "@playwright/test": "^1.60.0"
+  },
+  "name": "app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "playwright test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CoderMisaki/Sudoku-Solver-.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/CoderMisaki/Sudoku-Solver-/issues"
+  },
+  "homepage": "https://github.com/CoderMisaki/Sudoku-Solver-#readme"
+}
