@@ -807,37 +807,41 @@
             return reduced ? "Pointing/Box-Line" : null;
         }
 
-        function nakedPairsTriples(cands, sizeT) {
+        function nakedPairs(cands) {
             let reduced = false;
             for(let unit of ALL_UNITS) {
-                let eli = unit.filter(cell => cands[cell.r][cell.c].size > 0 && cands[cell.r][cell.c].size <= sizeT);
-                if (sizeT === 2) {
-                    for(let i=0; i<eli.length; i++) for(let j=i+1; j<eli.length; j++) {
-                        let s1 = cands[eli[i].r][eli[i].c], s2 = cands[eli[j].r][eli[j].c];
-                        if (s1.size===2 && s2.size===2) {
-                            let a1=Array.from(s1), a2=Array.from(s2);
-                            if(a1[0]===a2[0] && a1[1]===a2[1]) {
-                                for(let cell of unit) if(cell!==eli[i] && cell!==eli[j]) {
-                                    if(cands[cell.r][cell.c].has(a1[0])) { cands[cell.r][cell.c].delete(a1[0]); reduced=true; }
-                                    if(cands[cell.r][cell.c].has(a1[1])) { cands[cell.r][cell.c].delete(a1[1]); reduced=true; }
-                                }
-                            }
-                        }
-                    }
-                }
-                if (sizeT === 3) {
-                    for(let i=0; i<eli.length; i++) for(let j=i+1; j<eli.length; j++) for(let k=j+1; k<eli.length; k++) {
-                        let c1=eli[i], c2=eli[j], c3=eli[k];
-                        let un = new Set([...cands[c1.r][c1.c], ...cands[c2.r][c2.c], ...cands[c3.r][c3.c]]);
-                        if(un.size === 3) {
-                            for(let cell of unit) if(cell!==c1 && cell!==c2 && cell!==c3) {
-                                for(let v of un) if(cands[cell.r][cell.c].has(v)) { cands[cell.r][cell.c].delete(v); reduced=true; }
+                let eli = unit.filter(cell => cands[cell.r][cell.c].size > 0 && cands[cell.r][cell.c].size <= 2);
+                for(let i=0; i<eli.length; i++) for(let j=i+1; j<eli.length; j++) {
+                    let s1 = cands[eli[i].r][eli[i].c], s2 = cands[eli[j].r][eli[j].c];
+                    if (s1.size===2 && s2.size===2) {
+                        let a1=Array.from(s1), a2=Array.from(s2);
+                        if(a1[0]===a2[0] && a1[1]===a2[1]) {
+                            for(let cell of unit) if(cell!==eli[i] && cell!==eli[j]) {
+                                if(cands[cell.r][cell.c].has(a1[0])) { cands[cell.r][cell.c].delete(a1[0]); reduced=true; }
+                                if(cands[cell.r][cell.c].has(a1[1])) { cands[cell.r][cell.c].delete(a1[1]); reduced=true; }
                             }
                         }
                     }
                 }
             }
-            return reduced ? (sizeT===2 ? "Naked Pair" : "Naked Triple") : null;
+            return reduced ? "Naked Pair" : null;
+        }
+
+        function nakedTriples(cands) {
+            let reduced = false;
+            for(let unit of ALL_UNITS) {
+                let eli = unit.filter(cell => cands[cell.r][cell.c].size > 0 && cands[cell.r][cell.c].size <= 3);
+                for(let i=0; i<eli.length; i++) for(let j=i+1; j<eli.length; j++) for(let k=j+1; k<eli.length; k++) {
+                    let c1=eli[i], c2=eli[j], c3=eli[k];
+                    let un = new Set([...cands[c1.r][c1.c], ...cands[c2.r][c2.c], ...cands[c3.r][c3.c]]);
+                    if(un.size === 3) {
+                        for(let cell of unit) if(cell!==c1 && cell!==c2 && cell!==c3) {
+                            for(let v of un) if(cands[cell.r][cell.c].has(v)) { cands[cell.r][cell.c].delete(v); reduced=true; }
+                        }
+                    }
+                }
+            }
+            return reduced ? "Naked Triple" : null;
         }
 
         function hiddenPair(cands) {
@@ -926,7 +930,7 @@
                     return ans; 
                 }
                 
-                let red = intersectRemoval(wCands) || nakedPairsTriples(wCands, 2) || nakedPairsTriples(wCands, 3) || hiddenPair(wCands) || xWing(wCands) || xyWing(wCands);
+                let red = intersectRemoval(wCands) || nakedPairs(wCands) || nakedTriples(wCands) || hiddenPair(wCands) || xWing(wCands) || xyWing(wCands);
                 if(red) { strats.push(red); continue; }
                 break;
             }
