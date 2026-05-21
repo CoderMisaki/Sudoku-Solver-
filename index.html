@@ -405,11 +405,27 @@
             document.getElementById('btn-clear-txt').textContent = t.btnClearTxt;
         }
 
+        let saveStateTimeout = null;
+
         function saveState() {
-            localStorage.setItem('sudoku_board_state', JSON.stringify(board));
-            localStorage.setItem('sudoku_spoiler_count', spoilerCount);
-            localStorage.setItem('sudoku_demo_idx', lastDemoIndex);
+            if (saveStateTimeout) clearTimeout(saveStateTimeout);
+            saveStateTimeout = setTimeout(() => {
+                localStorage.setItem('sudoku_board_state', JSON.stringify(board));
+                localStorage.setItem('sudoku_spoiler_count', spoilerCount);
+                localStorage.setItem('sudoku_demo_idx', lastDemoIndex);
+                saveStateTimeout = null;
+            }, 500);
         }
+
+        window.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden' && saveStateTimeout) {
+                clearTimeout(saveStateTimeout);
+                localStorage.setItem('sudoku_board_state', JSON.stringify(board));
+                localStorage.setItem('sudoku_spoiler_count', spoilerCount);
+                localStorage.setItem('sudoku_demo_idx', lastDemoIndex);
+                saveStateTimeout = null;
+            }
+        });
 
         function loadState() {
             const savedBoard = localStorage.getItem('sudoku_board_state');
