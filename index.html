@@ -405,10 +405,21 @@
             document.getElementById('btn-clear-txt').textContent = t.btnClearTxt;
         }
 
+        let saveStateTimeout = null;
         function saveState() {
-            localStorage.setItem('sudoku_board_state', JSON.stringify(board));
-            localStorage.setItem('sudoku_spoiler_count', spoilerCount);
-            localStorage.setItem('sudoku_demo_idx', lastDemoIndex);
+            // ⚡ Bolt: Optimize by deferring synchronous I/O and JSON serialization to prevent blocking the main thread.
+            const performSave = () => {
+                localStorage.setItem('sudoku_board_state', JSON.stringify(board));
+                localStorage.setItem('sudoku_spoiler_count', spoilerCount);
+                localStorage.setItem('sudoku_demo_idx', lastDemoIndex);
+            };
+            if (window.requestIdleCallback) {
+                if (saveStateTimeout) cancelIdleCallback(saveStateTimeout);
+                saveStateTimeout = requestIdleCallback(performSave);
+            } else {
+                if (saveStateTimeout) clearTimeout(saveStateTimeout);
+                saveStateTimeout = setTimeout(performSave, 0);
+            }
         }
 
         function loadState() {
