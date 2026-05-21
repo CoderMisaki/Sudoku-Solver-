@@ -933,6 +933,18 @@
             return null;
         }
 
+        function applyHint(r, c, val, strat) {
+            board[r][c] = val;
+            cells[r][c].textContent = val;
+            cells[r][c].classList.add('cell-hint');
+            propagateCandidate(r, c, val);
+            candsMap[r][c].clear();
+
+            spoilerCount++; saveState();
+            selectCell(r, c, cells[r][c]);
+            setStatus(t.statusSpoilerAdded.replace('{count}', spoilerCount).replace('{strat}', strat), "#fef08a");
+        }
+
         // --- EXECUTION: SPOILER ---
         function useSpoiler() {
             if (isSolved) clearSolutionColors();
@@ -942,15 +954,7 @@
             setTimeout(() => {
                 let logicAns = getLogicalHint(board);
                 if (logicAns) {
-                    board[logicAns.r][logicAns.c] = logicAns.val;
-                    cells[logicAns.r][logicAns.c].textContent = logicAns.val;
-                    cells[logicAns.r][logicAns.c].classList.add('cell-hint'); 
-                    propagateCandidate(logicAns.r, logicAns.c, logicAns.val); 
-                    candsMap[logicAns.r][logicAns.c].clear();
-                    
-                    spoilerCount++; saveState(); 
-                    selectCell(logicAns.r, logicAns.c, cells[logicAns.r][logicAns.c]);
-                    setStatus(t.statusSpoilerAdded.replace('{count}', spoilerCount).replace('{strat}', logicAns.strat), "#fef08a");
+                    applyHint(logicAns.r, logicAns.c, logicAns.val, logicAns.strat);
                     return;
                 }
 
@@ -996,16 +1000,7 @@
 
                 if (!foundHint) { setStatus(t.statusGamblingOnly, "#fca5a5"); return; }
 
-                board[foundHint.r][foundHint.c] = foundHint.val;
-                cells[foundHint.r][foundHint.c].textContent = foundHint.val;
-                cells[foundHint.r][foundHint.c].classList.add('cell-hint'); 
-                
-                propagateCandidate(foundHint.r, foundHint.c, foundHint.val);
-                candsMap[foundHint.r][foundHint.c].clear();
-
-                spoilerCount++; saveState(); 
-                selectCell(foundHint.r, foundHint.c, cells[foundHint.r][foundHint.c]);
-                setStatus(t.statusSpoilerAdded.replace('{count}', spoilerCount).replace('{strat}', 'DLX Algorithm'), "#fef08a");
+                applyHint(foundHint.r, foundHint.c, foundHint.val, 'DLX Algorithm');
             }, 5);
         }
 
