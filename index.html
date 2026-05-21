@@ -1205,6 +1205,79 @@
             setStatus(t.statusDemo, "#93c5fd");
         }
 
+
+        // --- TEST SUITE FOR buildDLX ---
+        function runDLXTests() {
+            console.log("Running buildDLX tests...");
+            let passed = 0; let failed = 0;
+
+            function assertEqual(actual, expected, message) {
+                if (actual === expected) {
+                    console.log(`✅ PASS: ${message}`);
+                    passed++;
+                } else {
+                    console.error(`❌ FAIL: ${message}`);
+                    console.error(`   Expected: ${expected}`);
+                    console.error(`   Actual: ${actual}`);
+                    failed++;
+                }
+            }
+
+            // Test 1: Empty board
+            try {
+                let testBoard = Array.from({length: 9}, () => Array(9).fill(0));
+                let header = buildDLX(testBoard);
+                let colCount = 0;
+                for (let c = header.R; c !== header; c = c.R) colCount++;
+                assertEqual(colCount, 324, "Empty board creates exactly 324 constraint columns");
+
+                let totalNodes = 0;
+                for (let c = header.R; c !== header; c = c.R) {
+                    for (let r = c.D; r !== c; r = r.D) totalNodes++;
+                }
+                assertEqual(totalNodes, 729 * 4, "Empty board creates 2916 nodes (729 possible placements * 4 constraints)");
+            } catch (e) { console.error("❌ FAIL: Test 1 error", e); failed++; }
+
+            // Test 2: Fully filled board
+            try {
+                let testBoard3 = Array.from({length: 9}, () => Array(9).fill(1));
+                let header3 = buildDLX(testBoard3);
+                let totalNodes3 = 0;
+                for (let c = header3.R; c !== header3; c = c.R) {
+                    for (let r = c.D; r !== c; r = r.D) totalNodes3++;
+                }
+                assertEqual(totalNodes3, 81 * 4, "Fully filled board creates 324 nodes (81 rows * 4 constraints)");
+            } catch (e) { console.error("❌ FAIL: Test 2 error", e); failed++; }
+
+            // Test 3: Verify node properties and links (Pre-filled cell)
+            try {
+                let testBoard = Array.from({length: 9}, () => Array(9).fill(0));
+                testBoard[0][0] = 5;
+                let header = buildDLX(testBoard);
+                let cellCol = header.R;
+                let rowCount = 0;
+                let foundValue5 = false;
+                let constraints = "";
+                for (let r = cellCol.D; r !== cellCol; r = r.D) {
+                    rowCount++;
+                    if (r.rowID.r === 0 && r.rowID.c === 0 && r.rowID.v === 5) {
+                        foundValue5 = true;
+                        let cols = [r.C.name, r.R.C.name, r.R.R.C.name, r.R.R.R.C.name].sort((a,b)=>a-b);
+                        constraints = cols.join(',');
+                    }
+                }
+                assertEqual(rowCount, 1, "Pre-filled cell has exactly 1 row option");
+                assertEqual(foundValue5, true, "Pre-filled cell correctly stores r, c, v in rowID");
+                assertEqual(constraints, "0,85,166,247", "Node horizontal links connect to correct constraint columns");
+            } catch (e) { console.error("❌ FAIL: Test 3 error", e); failed++; }
+
+            console.log(`Test Results: ${passed} passed, ${failed} failed`);
+        }
+
+        if (window.location && window.location.search.includes('runTests=1')) {
+            runDLXTests();
+        }
+
         initGrid();
 
     </script>
