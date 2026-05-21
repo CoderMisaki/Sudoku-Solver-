@@ -635,6 +635,36 @@
             return null;
         }
 
+        // --- TESTS FOR findEmpty ---
+        function testFindEmpty() {
+            const getFullBoard = () => Array.from({ length: 9 }, () => Array(9).fill(1));
+            const getEmptyBoard = () => Array.from({ length: 9 }, () => Array(9).fill(0));
+
+            // Test 1: First cell empty
+            let b1 = getEmptyBoard();
+            let r1 = findEmpty(b1);
+            console.assert(r1 && r1[0] === 0 && r1[1] === 0, "Test 1 Failed: empty board");
+
+            // Test 2: No empty cells
+            let b2 = getFullBoard();
+            console.assert(findEmpty(b2) === null, "Test 2 Failed: full board");
+
+            // Test 3: Last cell empty
+            let b3 = getFullBoard();
+            b3[8][8] = 0;
+            let r3 = findEmpty(b3);
+            console.assert(r3 && r3[0] === 8 && r3[1] === 8, "Test 3 Failed: last cell empty");
+
+            // Test 4: Middle cell empty
+            let b4 = getFullBoard();
+            b4[4][5] = 0;
+            let r4 = findEmpty(b4);
+            console.assert(r4 && r4[0] === 4 && r4[1] === 5, "Test 4 Failed: middle cell empty");
+
+            console.log("findEmpty tests passed.");
+        }
+        testFindEmpty();
+
         // =====================================================================
         // ALGORITHM X (DANCING LINKS - DLX) ENGINE 
         // =====================================================================
