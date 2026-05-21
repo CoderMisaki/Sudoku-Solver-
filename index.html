@@ -846,17 +846,14 @@
                 let cc = {};
                 for(let v=1; v<=9; v++) cc[v] = unit.filter(c => cands[c.r][c.c].has(v));
                 for(let v1=1; v1<=8; v1++) {
-                    if(cc[v1].length === 2) {
-                        for(let v2=v1+1; v2<=9; v2++) {
-                            if(cc[v2].length === 2) {
-                                let a=cc[v1], b=cc[v2];
-                                if(a[0].r===b[0].r && a[0].c===b[0].c && a[1].r===b[1].r && a[1].c===b[1].c) {
-                                    for(let cell of a) {
-                                        let s = cands[cell.r][cell.c];
-                                        for(let v of Array.from(s)) if(v!==v1 && v!==v2) { s.delete(v); reduced=true; }
-                                    }
-                                }
-                            }
+                    if(cc[v1].length !== 2) continue;
+                    for(let v2=v1+1; v2<=9; v2++) {
+                        if(cc[v2].length !== 2) continue;
+                        let a=cc[v1], b=cc[v2];
+                        if(a[0].r!==b[0].r || a[0].c!==b[0].c || a[1].r!==b[1].r || a[1].c!==b[1].c) continue;
+                        for(let cell of a) {
+                            let s = cands[cell.r][cell.c];
+                            for(let v of Array.from(s)) if(v!==v1 && v!==v2) { s.delete(v); reduced=true; }
                         }
                     }
                 }
