@@ -1205,6 +1205,79 @@
             setStatus(t.statusDemo, "#93c5fd");
         }
 
+
+        // --- TESTS FOR doHiddenSingle ---
+        function runHiddenSingleTests() {
+            console.log("Running doHiddenSingle tests...");
+            let passed = 0;
+            let failed = 0;
+
+            function assertEqual(actual, expected, msg) {
+                if (actual === expected) {
+                    passed++;
+                } else {
+                    console.error(`❌ FAIL: ${msg}. Expected ${expected}, got ${actual}`);
+                    failed++;
+                }
+            }
+
+            function setupTestBoard() {
+                let b = Array(9).fill().map(() => Array(9).fill(0));
+                let c = Array(9).fill().map(() => Array(9).fill().map(() => new Set()));
+                for(let i=0; i<9; i++) {
+                    for(let j=0; j<9; j++) {
+                        c[i][j].add(1).add(2).add(3).add(4);
+                    }
+                }
+                return {b, c};
+            }
+
+            try {
+                // Test 1: Row hidden single
+                let {b: b1, c: c1} = setupTestBoard();
+                c1[0][4].add(5);
+                let res1 = doHiddenSingle(b1, c1);
+                let ok1 = res1 && res1.r === 0 && res1.c === 4 && res1.val === 5 && res1.strat === 'Hidden Single';
+                assertEqual(!!ok1, true, "Should find hidden single in a row");
+
+                // Test 2: Column hidden single
+                let {b: b2, c: c2} = setupTestBoard();
+                c2[7][2].add(8);
+                let res2 = doHiddenSingle(b2, c2);
+                let ok2 = res2 && res2.r === 7 && res2.c === 2 && res2.val === 8 && res2.strat === 'Hidden Single';
+                assertEqual(!!ok2, true, "Should find hidden single in a column");
+
+                // Test 3: Box hidden single
+                let {b: b3, c: c3} = setupTestBoard();
+                c3[8][8].add(9);
+                let res3 = doHiddenSingle(b3, c3);
+                let ok3 = res3 && res3.r === 8 && res3.c === 8 && res3.val === 9 && res3.strat === 'Hidden Single';
+                assertEqual(!!ok3, true, "Should find hidden single in a box");
+
+                // Test 4: No hidden singles
+                let {b: b4, c: c4} = setupTestBoard();
+                let res4 = doHiddenSingle(b4, c4);
+                assertEqual(res4, null, "Should return null when no hidden singles exist");
+
+                // Test 5: Ignore filled cells
+                let {b: b5, c: c5} = setupTestBoard();
+                c5[3][3].add(7);
+                b5[3][3] = 7;
+                let res5 = doHiddenSingle(b5, c5);
+                assertEqual(res5, null, "Should ignore filled cells even if they have unique candidates");
+
+                console.log(`doHiddenSingle Tests: ${passed} passed, ${failed} failed.`);
+            } catch (e) {
+                console.error("Test execution failed:", e);
+            }
+        }
+
+        // Execute tests if not in production or for demonstration
+        if (typeof window !== 'undefined') {
+            runHiddenSingleTests();
+        }
+        // --------------------------------
+
         initGrid();
 
     </script>
