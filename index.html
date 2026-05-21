@@ -1205,6 +1205,52 @@
             setStatus(t.statusDemo, "#93c5fd");
         }
 
+
+        // --- TESTS ---
+        function testDoHiddenSingle() {
+            console.log("Running doHiddenSingle tests...");
+            let passed = true;
+            const assertEqual = (actual, expected, msg) => {
+                if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+                    console.error(`❌ FAIL: ${msg}\n  Expected: ${JSON.stringify(expected)}\n  Actual: ${JSON.stringify(actual)}`);
+                    passed = false;
+                }
+            };
+
+            // Setup mock grid and candidates
+            const getEmptyBoard = () => Array(9).fill(0).map(() => Array(9).fill(0));
+            const getCands = () => Array(9).fill(0).map(() => Array(9).fill(0).map(() => new Set([1, 2, 3])));
+
+            // 1. Test basic Hidden Single in a row
+            let b1 = getEmptyBoard(), c1 = getCands();
+            c1[0][4].add(5); // Only cell in row 0 with candidate 5
+            assertEqual(doHiddenSingle(b1, c1), { r: 0, c: 4, val: 5, strat: 'Hidden Single' }, "Hidden Single in a row");
+
+            // 2. Test basic Hidden Single in a column
+            let b2 = getEmptyBoard(), c2 = getCands();
+            c2[5][2].add(7); // Only cell in col 2 with candidate 7
+            assertEqual(doHiddenSingle(b2, c2), { r: 5, c: 2, val: 7, strat: 'Hidden Single' }, "Hidden Single in a column");
+
+            // 3. Test basic Hidden Single in a box
+            let b3 = getEmptyBoard(), c3 = getCands();
+            c3[1][1].add(9); // Only cell in box 0 with candidate 9
+            assertEqual(doHiddenSingle(b3, c3), { r: 1, c: 1, val: 9, strat: 'Hidden Single' }, "Hidden Single in a box");
+
+            // 4. Test no Hidden Single
+            let b4 = getEmptyBoard(), c4 = getCands();
+            assertEqual(doHiddenSingle(b4, c4), null, "No Hidden Single available");
+
+            // 5. Test filled cell ignores candidates
+            let b5 = getEmptyBoard(), c5 = getCands();
+            b5[0][0] = 5; // Cell is already filled
+            c5[0][0].add(5);
+            assertEqual(doHiddenSingle(b5, c5), null, "Filled cell is ignored");
+
+            if (passed) console.log("✅ doHiddenSingle tests passed!");
+            return passed;
+        }
+        window.testDoHiddenSingle = testDoHiddenSingle;
+
         initGrid();
 
     </script>
