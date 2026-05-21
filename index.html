@@ -1204,6 +1204,56 @@
             selectCell(0, 2, cells[0][2]); 
             setStatus(t.statusDemo, "#93c5fd");
         }
+        function runTests() {
+
+            console.log("Running tests...");
+
+            let passed = 0; let failed = 0;
+
+            function assert(condition, message) {
+
+                if (condition) { passed++; console.log("✅ " + message); }
+
+                else { failed++; console.error("❌ " + message); }
+
+            }
+
+            const emptyBoard = Array.from({ length: 9 }, () => Array(9).fill(0));
+
+            assert(isValid(emptyBoard, 0, 0, 5) === true, "isValid: allows placement on empty board");
+
+            const boardWithRowConflict = Array.from({ length: 9 }, () => Array(9).fill(0));
+
+            boardWithRowConflict[0][8] = 5;
+
+            assert(isValid(boardWithRowConflict, 0, 0, 5) === false, "isValid: detects row conflict");
+
+            const boardWithColConflict = Array.from({ length: 9 }, () => Array(9).fill(0));
+
+            boardWithColConflict[8][0] = 5;
+
+            assert(isValid(boardWithColConflict, 0, 0, 5) === false, "isValid: detects column conflict");
+
+            const boardWithBlockConflict = Array.from({ length: 9 }, () => Array(9).fill(0));
+
+            boardWithBlockConflict[2][2] = 5;
+
+            assert(isValid(boardWithBlockConflict, 0, 0, 5) === false, "isValid: detects 3x3 block conflict");
+
+            const boardNoConflict = Array.from({ length: 9 }, () => Array(9).fill(0));
+
+            boardNoConflict[0][8] = 1; boardNoConflict[8][0] = 2; boardNoConflict[2][2] = 3;
+
+            assert(isValid(boardNoConflict, 0, 0, 5) === true, "isValid: allows placement with no conflicts");
+
+            console.log(`Test results: ${passed} passed, ${failed} failed`);
+
+            if (failed > 0) { console.error("TESTS FAILED"); } else { console.log("TESTS PASSED"); }
+
+        }
+
+        if (window.location.search.includes("test=true")) { runTests(); }
+
 
         initGrid();
 
