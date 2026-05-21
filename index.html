@@ -1205,6 +1205,50 @@
             setStatus(t.statusDemo, "#93c5fd");
         }
 
+
+        // --- TESTS ---
+        function testDoNakedSingle() {
+            let passed = 0, failed = 0;
+            const assert = (condition, msg) => {
+                if (!condition) {
+                    failed++;
+                    console.error("❌ Test Failed: " + msg);
+                } else {
+                    passed++;
+                }
+            };
+
+            console.log("Running tests for doNakedSingle...");
+
+            // 1. No naked single available
+            let b1 = Array(9).fill().map(() => Array(9).fill(0));
+            let c1 = Array(9).fill().map(() => Array(9).fill(new Set([1, 2])));
+            assert(doNakedSingle(b1, c1) === null, "Returns null when no cell has exactly 1 candidate");
+
+            // 2. Naked single available
+            let b2 = Array(9).fill().map(() => Array(9).fill(0));
+            let c2 = Array(9).fill().map(() => Array(9).fill(new Set([1, 2])));
+            c2[4][5] = new Set([8]);
+            let res2 = doNakedSingle(b2, c2);
+            assert(res2 !== null && res2.r === 4 && res2.c === 5 && res2.val === 8 && res2.strat === 'Naked Single', "Identifies correct naked single");
+
+            // 3. Ignored if already filled
+            let b3 = Array(9).fill().map(() => Array(9).fill(0));
+            b3[1][1] = 9;
+            let c3 = Array(9).fill().map(() => Array(9).fill(new Set([1, 2])));
+            c3[1][1] = new Set([9]);
+            assert(doNakedSingle(b3, c3) === null, "Ignores cells that are already filled");
+
+            console.log(`Test results: ${passed} passed, ${failed} failed`);
+            if (failed > 0) {
+                console.error("Some tests failed!");
+            }
+        }
+
+        if (typeof window !== 'undefined' && window.location && window.location.search.includes('test=1')) {
+            testDoNakedSingle();
+        }
+
         initGrid();
 
     </script>
