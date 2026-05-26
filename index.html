@@ -650,42 +650,55 @@
 
         function buildDLX(board) {
             const header = new DLXColumn("H");
-            const cols = [];
+            // ⚡ Bolt: Pre-allocate column array and inline row addition to reduce GC pressure and closures
+            const cols = new Array(324);
             for (let i=0; i<324; i++) {
                 let c = new DLXColumn(i);
                 c.L = header.L; c.R = header;
                 header.L.R = c; header.L = c;
-                cols.push(c);
+                cols[i] = c;
             }
 
-            const addRow = (r, c, v) => {
-                let b = Math.floor(r/3)*3 + Math.floor(c/3);
-                let indices = [ r*9 + c, 81 + r*9 + v - 1, 162 + c*9 + v - 1, 243 + b*9 + v - 1 ];
-                let first = null;
-                for (let idx of indices) {
-                    let col = cols[idx];
-                    let node = new DLXNode(col);
-                    node.rowID = {r, c, v};
-                    node.U = col.U; node.D = col;
-                    col.U.D = node; col.U = node;
-                    col.size++;
-                    if (!first) { first = node; } 
-                    else {
-                        node.L = first.L; node.R = first;
-                        first.L.R = node; first.L = node;
-                    }
-                }
-            };
-
             for (let r=0; r<9; r++) {
+                let r9 = r * 9;
+                let r3 = Math.floor(r/3) * 3;
                 for (let c=0; c<9; c++) {
-                    if (board[r][c] !== 0) addRow(r, c, board[r][c]);
-                    else for (let v=1; v<=9; v++) addRow(r, c, v);
+                    let b = r3 + Math.floor(c/3);
+                    let b9 = b * 9;
+                    let c9 = c * 9;
+
+                    let val = board[r][c];
+                    let vStart = val !== 0 ? val : 1;
+                    let vEnd = val !== 0 ? val : 9;
+
+                    for (let v=vStart; v<=vEnd; v++) {
+                        let rowID = {r, c, v};
+
+                        let c1 = cols[r9 + c];
+                        let n1 = new DLXNode(c1); n1.rowID = rowID;
+                        n1.U = c1.U; n1.D = c1; c1.U.D = n1; c1.U = n1; c1.size++;
+
+                        let c2 = cols[81 + r9 + v - 1];
+                        let n2 = new DLXNode(c2); n2.rowID = rowID;
+                        n2.U = c2.U; n2.D = c2; c2.U.D = n2; c2.U = n2; c2.size++;
+
+                        let c3 = cols[162 + c9 + v - 1];
+                        let n3 = new DLXNode(c3); n3.rowID = rowID;
+                        n3.U = c3.U; n3.D = c3; c3.U.D = n3; c3.U = n3; c3.size++;
+
+                        let c4 = cols[243 + b9 + v - 1];
+                        let n4 = new DLXNode(c4); n4.rowID = rowID;
+                        n4.U = c4.U; n4.D = c4; c4.U.D = n4; c4.U = n4; c4.size++;
+
+                        n1.R = n2; n2.L = n1;
+                        n2.R = n3; n3.L = n2;
+                        n3.R = n4; n4.L = n3;
+                        n4.R = n1; n1.L = n4;
+                    }
                 }
             }
             return header;
         }
-
         function cover(c) {
             c.R.L = c.L; c.L.R = c.R;
             for (let i = c.D; i !== c; i = i.D) {
