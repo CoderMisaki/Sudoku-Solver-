@@ -1,3 +1,6 @@
 ## 2023-10-27 - Restoring Keyboard Focus and Semantic Labels
 **Learning:** In applications using utility-first frameworks or custom CSS resets, the default `outline` is often entirely removed (e.g., `outline: none;`), which completely breaks keyboard navigation visibility. Additionally, highly iconic UIs frequently neglect descriptive text for assistive tech.
 **Action:** Always verify that interactive components (buttons, cells) have a `:focus-visible` state explicitly defined when `outline` is removed, and ensure all icon-only or abbreviation-only controls possess descriptive `aria-label`s.
+## 2023-11-20 - Screen Reader Accessibility for Dynamic Content
+**Learning:** In vanilla JS SPA interfaces, dynamic status updates and error messages that change without altering visual focus are completely invisible to screen readers unless specifically marked. This applies to status text updates, navigation counts, and modal error messages.
+**Action:** Always ensure that dynamic text elements use `aria-live` (e.g., `aria-live="polite"` with `role="status"` for non-critical updates, or `aria-live="assertive"` with `role="alert"` for critical errors) so that screen readers announce these changes automatically.
