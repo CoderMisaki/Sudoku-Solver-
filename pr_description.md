@@ -1,0 +1,3 @@
+🎯 **What:** Replaced the deprecated `document.execCommand('copy')` API with the modern asynchronous `navigator.clipboard.writeText` API in `copyPuzzle()`.
+⚠️ **Risk:** The `document.execCommand` API is deprecated and considered a poor security practice. It can lead to cross-browser incompatibilities and doesn't integrate well with the modern browser permission model.
+🛡️ **Solution:** Updated `copyPuzzle()` to be an `async` function and use `await navigator.clipboard.writeText(text)` wrapped in a `try/catch` block for graceful error handling. Also recorded this security learning in `.jules/sentinel.md`.
