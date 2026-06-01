@@ -650,37 +650,59 @@
 
         function buildDLX(board) {
             const header = new DLXColumn("H");
-            const cols = [];
+            // ⚡ Bolt: Pre-allocate array for performance and inline row-addition logic
+            const cols = new Array(324);
             for (let i=0; i<324; i++) {
                 let c = new DLXColumn(i);
                 c.L = header.L; c.R = header;
                 header.L.R = c; header.L = c;
-                cols.push(c);
+                cols[i] = c;
             }
 
-            const addRow = (r, c, v) => {
-                let b = Math.floor(r/3)*3 + Math.floor(c/3);
-                let indices = [ r*9 + c, 81 + r*9 + v - 1, 162 + c*9 + v - 1, 243 + b*9 + v - 1 ];
-                let first = null;
-                for (let idx of indices) {
-                    let col = cols[idx];
-                    let node = new DLXNode(col);
-                    node.rowID = {r, c, v};
-                    node.U = col.U; node.D = col;
-                    col.U.D = node; col.U = node;
-                    col.size++;
-                    if (!first) { first = node; } 
-                    else {
-                        node.L = first.L; node.R = first;
-                        first.L.R = node; first.L = node;
-                    }
-                }
-            };
-
             for (let r=0; r<9; r++) {
+                let r9 = r * 9;
+                let r3 = Math.floor(r / 3) * 3;
                 for (let c=0; c<9; c++) {
-                    if (board[r][c] !== 0) addRow(r, c, board[r][c]);
-                    else for (let v=1; v<=9; v++) addRow(r, c, v);
+                    let b = r3 + Math.floor(c / 3);
+                    let vStart = board[r][c] !== 0 ? board[r][c] : 1;
+                    let vEnd = board[r][c] !== 0 ? board[r][c] : 9;
+                    let idx0 = r9 + c;
+                    let idx2_base = 162 + c * 9;
+                    let idx3_base = 243 + b * 9;
+
+                    for (let v = vStart; v <= vEnd; v++) {
+                        let vMinus1 = v - 1;
+                        let idx1 = 81 + r9 + vMinus1;
+                        let idx2 = idx2_base + vMinus1;
+                        let idx3 = idx3_base + vMinus1;
+
+                        let rowID = {r, c, v};
+
+                        // ⚡ Bolt: Inline node creation and linking to prevent dynamic array allocation and function calls
+                        let col0 = cols[idx0];
+                        let node0 = new DLXNode(col0);
+                        node0.rowID = rowID; node0.U = col0.U; node0.D = col0;
+                        col0.U.D = node0; col0.U = node0; col0.size++;
+                        let first = node0;
+
+                        let col1 = cols[idx1];
+                        let node1 = new DLXNode(col1);
+                        node1.rowID = rowID; node1.U = col1.U; node1.D = col1;
+                        col1.U.D = node1; col1.U = node1; col1.size++;
+                        node1.L = first.L; node1.R = first; first.L.R = node1; first.L = node1;
+
+                        let col2 = cols[idx2];
+                        let node2 = new DLXNode(col2);
+                        node2.rowID = rowID; node2.U = col2.U; node2.D = col2;
+                        col2.U.D = node2; col2.U = node2; col2.size++;
+                        node2.L = first.L; node2.R = first; first.L.R = node2; first.L = node2;
+
+                        let col3 = cols[idx3];
+                        let node3 = new DLXNode(col3);
+                        node3.rowID = rowID; node3.U = col3.U; node3.D = col3;
+                        col3.U.D = node3; col3.U = node3; col3.size++;
+                        node3.L = first.L; node3.R = first; first.L.R = node3; first.L = node3;
+                    }
                 }
             }
             return header;
