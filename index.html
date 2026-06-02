@@ -210,14 +210,14 @@
         
         <!-- Header -->
         <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 12px;">
-            <button onclick="openModal()" class="btn-header" aria-label="Import or Export Puzzle">I/O</button>
+            <button id="btn-io" onclick="openModal()" class="btn-header" aria-label="Import or Export Puzzle">I/O</button>
             <h1 style="font-size: 1.6rem; font-weight: 800; letter-spacing: 0.05em; margin: 0;">SUDOKU SOLVER</h1>
             <button id="btn-lang" onclick="toggleLanguage()" class="btn-header" aria-label="Toggle Language">ID</button>
         </div>
 
         <div id="nav-panel" class="nav-panel">
             <button onclick="changeSolution(-1)" id="btn-prev" class="btn-instant btn-numpad" style="width: 45px; height: 35px;" aria-label="Previous Solution">&lt;</button>
-            <div id="nav-text" style="font-size: 0.85rem; font-weight: bold; color: #facc15;">Solusi 1 / 5</div>
+            <div id="nav-text" role="status" aria-live="polite" style="font-size: 0.85rem; font-weight: bold; color: #facc15;">Solusi 1 / 5</div>
             <button onclick="changeSolution(1)" id="btn-next" class="btn-instant btn-numpad" style="width: 45px; height: 35px;" aria-label="Next Solution">&gt;</button>
         </div>
 
@@ -227,7 +227,7 @@
         </div>
 
         <!-- Status -->
-        <div id="status" style="font-size: 0.8rem; margin-bottom: 8px; height: 18px; color: #93c5fd; font-weight: bold; text-align: center; width: 100%; white-space: nowrap;">
+        <div id="status" role="status" aria-live="polite" aria-atomic="true" style="font-size: 0.8rem; margin-bottom: 8px; height: 18px; color: #93c5fd; font-weight: bold; text-align: center; width: 100%; white-space: nowrap;">
             Gunakan panah untuk memindah kotak.
         </div>
 
@@ -265,11 +265,11 @@
     </div>
 
     <!-- MODAL IMPORT / EXPORT -->
-    <div id="io-modal" class="modal-overlay">
+    <div id="io-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
         <div class="modal-content">
             <h2 id="modal-title" style="font-weight: bold; font-size: 1.1rem; text-align: center; color: white; margin: 0;">Import / Export Puzzle</h2>
-            <textarea id="io-textarea" placeholder="Tempel angka di sini..."></textarea>
-            <div id="modal-error" class="modal-error-msg"></div>
+            <textarea id="io-textarea" aria-labelledby="modal-title" placeholder="Tempel angka di sini..."></textarea>
+            <div id="modal-error" role="alert" aria-live="assertive" class="modal-error-msg"></div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                 <button id="btn-paste" onclick="pastePuzzle()" class="btn-instant btn-action" style="height: 38px; font-size: 0.9rem;">Tempel</button>
                 <button id="btn-clear-txt" onclick="clearTextarea()" class="btn-instant btn-del" style="height: 38px; font-size: 0.9rem;">Hapus Teks</button>
@@ -556,9 +556,10 @@
             modalError.textContent = ""; 
             ioTextarea.value = getFormattedPuzzle();
             ioModal.classList.add('active');
+            ioTextarea.focus();
         }
 
-        function closeModal() { ioModal.classList.remove('active'); modalError.textContent = ""; }
+        function closeModal() { ioModal.classList.remove('active'); modalError.textContent = ""; document.getElementById('btn-io').focus(); }
 
         function copyPuzzle() {
             ioTextarea.value = getFormattedPuzzle(); 
