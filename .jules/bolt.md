@@ -1,3 +1,3 @@
-## 2024-05-14 - Precomputing Peer Arrays for O(1) Lookups in Backtracking
-**Learning:** In highly repetitive tasks like Sudoku constraint propagation (`getPeers`), dynamic array creation generates massive memory allocation overhead and triggers frequent garbage collection, slowing down the algorithm.
-**Action:** Precalculate and store static mapping structures for O(1) read-only access globally, avoiding dynamic allocations in deep nested loops or recursion.
+## 2024-05-24 - Pre-allocating column arrays and inlining row-addition in Dancing Links matrix generation
+**Learning:** In DLX implementations for Sudoku, the matrix generation function (`buildDLX`) is a critical performance hotspot when run repeatedly (e.g., during hint generation). Dynamic array allocation (`[]` with `.push()`) and recreating closures (`addRow()`) for every candidate row adds significant overhead due to constant memory allocation and garbage collection.
+**Action:** When working on DLX matrix generation, pre-allocate the column array with fixed size (`new Array(324)`). Inline the node creation and linking logic (`addRow`) directly into the nested loops to avoid closure creation and dynamic `[..., ..., ...]` index array allocations. This eliminates GC pressure and drastically improves matrix construction speed.
