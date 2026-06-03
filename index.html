@@ -650,37 +650,50 @@
 
         function buildDLX(board) {
             const header = new DLXColumn("H");
-            const cols = [];
+            const cols = new Array(324);
             for (let i=0; i<324; i++) {
                 let c = new DLXColumn(i);
                 c.L = header.L; c.R = header;
                 header.L.R = c; header.L = c;
-                cols.push(c);
+                cols[i] = c;
             }
 
-            const addRow = (r, c, v) => {
-                let b = Math.floor(r/3)*3 + Math.floor(c/3);
-                let indices = [ r*9 + c, 81 + r*9 + v - 1, 162 + c*9 + v - 1, 243 + b*9 + v - 1 ];
-                let first = null;
-                for (let idx of indices) {
-                    let col = cols[idx];
-                    let node = new DLXNode(col);
-                    node.rowID = {r, c, v};
-                    node.U = col.U; node.D = col;
-                    col.U.D = node; col.U = node;
-                    col.size++;
-                    if (!first) { first = node; } 
-                    else {
-                        node.L = first.L; node.R = first;
-                        first.L.R = node; first.L = node;
-                    }
-                }
-            };
-
+            // ⚡ Bolt: Inlined row-addition logic and pre-allocated column arrays to avoid closures and garbage collection in hot loop
             for (let r=0; r<9; r++) {
+                let r9 = r * 9;
+                let br = Math.floor(r/3)*3;
                 for (let c=0; c<9; c++) {
-                    if (board[r][c] !== 0) addRow(r, c, board[r][c]);
-                    else for (let v=1; v<=9; v++) addRow(r, c, v);
+                    let val = board[r][c];
+                    let startV = val !== 0 ? val : 1;
+                    let endV = val !== 0 ? val : 9;
+                    let b = br + Math.floor(c/3);
+                    let i1 = r9 + c;
+                    let c9 = c * 9;
+
+                    for (let v=startV; v<=endV; v++) {
+                        let v_minus_1 = v - 1;
+                        let idx1 = i1;
+                        let idx2 = 81 + r9 + v_minus_1;
+                        let idx3 = 162 + c9 + v_minus_1;
+                        let idx4 = 243 + b*9 + v_minus_1;
+
+                        let rowID = {r, c, v};
+
+                        let n1 = new DLXNode(cols[idx1]); n1.rowID = rowID;
+                        let n2 = new DLXNode(cols[idx2]); n2.rowID = rowID;
+                        let n3 = new DLXNode(cols[idx3]); n3.rowID = rowID;
+                        let n4 = new DLXNode(cols[idx4]); n4.rowID = rowID;
+
+                        n1.U = cols[idx1].U; n1.D = cols[idx1]; cols[idx1].U.D = n1; cols[idx1].U = n1; cols[idx1].size++;
+                        n2.U = cols[idx2].U; n2.D = cols[idx2]; cols[idx2].U.D = n2; cols[idx2].U = n2; cols[idx2].size++;
+                        n3.U = cols[idx3].U; n3.D = cols[idx3]; cols[idx3].U.D = n3; cols[idx3].U = n3; cols[idx3].size++;
+                        n4.U = cols[idx4].U; n4.D = cols[idx4]; cols[idx4].U.D = n4; cols[idx4].U = n4; cols[idx4].size++;
+
+                        n1.R = n2; n2.L = n1;
+                        n2.R = n3; n3.L = n2;
+                        n3.R = n4; n4.L = n3;
+                        n4.R = n1; n1.L = n4;
+                    }
                 }
             }
             return header;
