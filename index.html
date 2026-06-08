@@ -711,6 +711,8 @@
             let check = (k) => {
                 if (h.R === h) { hasAlt = true; return true; }
                 let c = h.R;
+                // ⚡ Bolt: Include Minimum Size (S) Heuristic to prevent severe backtracking bottlenecks
+                for (let j = c.R; j !== h; j = j.R) if (j.size < c.size) c = j;
                 if (c.size === 0) return false;
                 cover(c);
                 for (let r = c.D; r !== c; r = r.D) {
