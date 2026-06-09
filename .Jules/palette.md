@@ -1,3 +1,6 @@
 ## 2023-10-27 - Restoring Keyboard Focus and Semantic Labels
 **Learning:** In applications using utility-first frameworks or custom CSS resets, the default `outline` is often entirely removed (e.g., `outline: none;`), which completely breaks keyboard navigation visibility. Additionally, highly iconic UIs frequently neglect descriptive text for assistive tech.
 **Action:** Always verify that interactive components (buttons, cells) have a `:focus-visible` state explicitly defined when `outline` is removed, and ensure all icon-only or abbreviation-only controls possess descriptive `aria-label`s.
+## 2024-05-24 - Roving Tabindex for Custom Grid Widgets
+**Learning:** When making custom `div`-based UI widgets (like grids) keyboard accessible, relying only on visual `.selected` classes leaves keyboard and screen reader users behind. Implementing a roving tabindex pattern (dynamically toggling `tabIndex` between `-1` and `0`) and calling `.focus({ preventScroll: true })` correctly triggers native `:focus-visible` CSS rules and syncs visual selection with assistive technologies.
+**Action:** Always implement a roving tabindex and use `focus({ preventScroll: true })` when building custom navigable widgets with ARIA roles instead of relying purely on visual CSS classes and global keyboard event listeners.
