@@ -710,7 +710,12 @@
             let hasAlt = false;
             let check = (k) => {
                 if (h.R === h) { hasAlt = true; return true; }
+                // ⚡ Bolt: Apply Minimum Size (S) Heuristic to minimize branching factor.
+                // This drastically speeds up backtracking and prevents severe bottlenecks.
                 let c = h.R;
+                for (let j = c.R; j !== h; j = j.R) {
+                    if (j.size < c.size) c = j;
+                }
                 if (c.size === 0) return false;
                 cover(c);
                 for (let r = c.D; r !== c; r = r.D) {
