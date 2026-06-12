@@ -227,7 +227,7 @@
         </div>
 
         <!-- Status -->
-        <div id="status" style="font-size: 0.8rem; margin-bottom: 8px; height: 18px; color: #93c5fd; font-weight: bold; text-align: center; width: 100%; white-space: nowrap;">
+        <div id="status" aria-live="polite" style="font-size: 0.8rem; margin-bottom: 8px; height: 18px; color: #93c5fd; font-weight: bold; text-align: center; width: 100%; white-space: nowrap;">
             Gunakan panah untuk memindah kotak.
         </div>
 
@@ -444,6 +444,7 @@
 
         function initGrid() {
             applyLanguageToUI();
+            gridEl.setAttribute('role', 'grid');
             for (let i = 0; i < 9; i++) {
                 const block = document.createElement('div');
                 block.className = 'sudoku-block';
@@ -454,6 +455,9 @@
                 for (let c = 0; c < 9; c++) {
                     const cell = document.createElement('div');
                     cell.className = 'sudoku-cell';
+                    cell.setAttribute('role', 'gridcell');
+                    cell.setAttribute('aria-label', `Row ${r + 1} Column ${c + 1}`);
+                    cell.tabIndex = -1;
                     cell.onpointerdown = () => selectCell(r, c, cell);
                     const blockIdx = Math.floor(r / 3) * 3 + Math.floor(c / 3);
                     gridEl.children[blockIdx].appendChild(cell);
@@ -465,10 +469,15 @@
         }
 
         function selectCell(r, c, cellElement) {
-            if (activeCell) activeCell.classList.remove('selected');
+            if (activeCell) {
+                activeCell.classList.remove('selected');
+                activeCell.tabIndex = -1;
+            }
             activeCell = cellElement;
             activeCell.classList.add('selected');
             activeCell.classList.remove('error-shake');
+            activeCell.tabIndex = 0;
+            activeCell.focus({ preventScroll: true });
             selectedRow = r; selectedCol = c;
         }
 
@@ -1011,7 +1020,7 @@
 
         // --- EXECUTION: SOLVE ---
         function solve() {
-            if (activeCell) { activeCell.classList.remove('selected'); activeCell = null; selectedRow = -1; selectedCol = -1; }
+            if (activeCell) { activeCell.classList.remove('selected'); activeCell.tabIndex = -1; activeCell = null; selectedRow = -1; selectedCol = -1; }
             clearSolutionColors();
             if (!isValidStart(board)) { setStatus(t.statusBoardErr, "#f87171"); return; }
             if (findEmpty(board) === null) { setStatus(t.statusDone, "#4ade80"); return; }
