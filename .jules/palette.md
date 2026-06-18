@@ -1,0 +1,3 @@
+## 2024-06-18 - Improve Modal Focus and Dynamic Status Updates
+**Learning:** Custom modals must programmatically manage keyboard focus (`document.activeElement`) to ensure robust accessibility when toggled via display classes. In addition, dynamically updated text elements (like status messages) require `aria-live="polite"` so screen readers properly announce state changes without interrupting the user.
+**Action:** Always store the active element before opening a custom modal, focus an element inside the modal upon opening, and restore focus upon closing. Add `aria-live` to dynamically updating feedback containers.
