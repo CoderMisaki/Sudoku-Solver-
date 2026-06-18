@@ -3,8 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- 🛡️ Sentinel: Enforce Content Security Policy to mitigate XSS and restrict unauthorized resource loading -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com/3.4.1; style-src 'self' 'unsafe-inline'; img-src 'self' data:;">
     <title>Sudoku Solver Pro</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 🛡️ Sentinel: Pin CDN version and add Subresource Integrity (SRI) to prevent execution of compromised external scripts -->
+    <script src="https://cdn.tailwindcss.com/3.4.1" integrity="sha384-SOMLQz+nKv/ORIYXo3J3NrWJ33oBgGvkHlV9t8i70QVLq8ZtST9Np1gDsVUkk4xN" crossorigin="anonymous"></script>
     <style>
         /* OPTIMASI MAKSIMAL: Mencegah delay, blokir seleksi teks */
         * { 
