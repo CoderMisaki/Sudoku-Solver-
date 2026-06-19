@@ -1,3 +1,6 @@
 ## 2023-10-27 - Restoring Keyboard Focus and Semantic Labels
 **Learning:** In applications using utility-first frameworks or custom CSS resets, the default `outline` is often entirely removed (e.g., `outline: none;`), which completely breaks keyboard navigation visibility. Additionally, highly iconic UIs frequently neglect descriptive text for assistive tech.
 **Action:** Always verify that interactive components (buttons, cells) have a `:focus-visible` state explicitly defined when `outline` is removed, and ensure all icon-only or abbreviation-only controls possess descriptive `aria-label`s.
+## 2024-06-19 - Screen Reader Politeness and Roving Tabindex
+**Learning:** Using `aria-live="polite"` on status messages is crucial to prevent screen readers from interrupting user actions (like typing numbers), allowing them to announce changes naturally. Additionally, custom grid components (`div` based) require a roving `tabindex` (-1 to 0) to be fully navigable by keyboard, otherwise they trap or skip focus entirely.
+**Action:** Always implement roving `tabindex` for 2D custom grids and assign `role="button"` and `aria-label` to each cell. Use `aria-live="polite"` for non-critical status updates.
