@@ -552,13 +552,23 @@
             return str;
         }
 
+        let previousActiveElement = null;
+
         function openModal() {
+            previousActiveElement = document.activeElement;
             modalError.textContent = ""; 
             ioTextarea.value = getFormattedPuzzle();
             ioModal.classList.add('active');
+            ioTextarea.focus();
         }
 
-        function closeModal() { ioModal.classList.remove('active'); modalError.textContent = ""; }
+        function closeModal() {
+            ioModal.classList.remove('active');
+            modalError.textContent = "";
+            if (previousActiveElement) {
+                previousActiveElement.focus({ preventScroll: true });
+            }
+        }
 
         function copyPuzzle() {
             ioTextarea.value = getFormattedPuzzle(); 
