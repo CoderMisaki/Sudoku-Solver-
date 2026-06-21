@@ -1,3 +1,6 @@
 ## 2024-05-14 - Precomputing Peer Arrays for O(1) Lookups in Backtracking
 **Learning:** In highly repetitive tasks like Sudoku constraint propagation (`getPeers`), dynamic array creation generates massive memory allocation overhead and triggers frequent garbage collection, slowing down the algorithm.
 **Action:** Precalculate and store static mapping structures for O(1) read-only access globally, avoiding dynamic allocations in deep nested loops or recursion.
+## 2024-05-24 - Huge Node.js eval() Timeout from Unoptimized DLX Search Space
+**Learning:** When writing Node.js benchmark scripts to evaluate complex algorithms like Donald Knuth's Algorithm X (Dancing Links) *before* implementing optimization heuristics (like the Minimum Size 'S' Heuristic), allowing the benchmarking loop to run for multiple iterations (e.g., 100x) on difficult inputs can cause the search space to explode exponentially. This leads to terminal timeouts (>400 seconds) during the baseline check because `dlxSolveCheck` naively picks the first column instead of the one with the fewest options.
+**Action:** When benchmarking unoptimized brute-force search algorithms that lack branch-pruning heuristics, restrict the baseline unoptimized loop to a single iteration (`for(let i=0; i<1; i++)`) to prevent execution timeouts, while the optimized version can safely handle many iterations.
