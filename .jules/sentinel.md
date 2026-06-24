@@ -2,3 +2,7 @@
 **Vulnerability:** The application blindly parsed and trusted `localStorage` data (`sudoku_lang` and `sudoku_board_state`) without verifying its structure or content.
 **Learning:** Client-side storage (`localStorage`, `sessionStorage`, cookies) can be modified by the user or an attacker. If the application logic assumes specific structures (like nested arrays or keys in a dictionary) and encounters unexpected types, it leads to app-breaking exceptions (e.g., `TypeError` when accessing properties on undefined language data, or errors during array iteration).
 **Prevention:** Always treat data retrieved from client-side storage as untrusted user input. Implement structural and type validation before assigning it to application state variables. Fail securely by falling back to safe defaults or discarding the corrupted state.
+## 2024-05-18 - Invalid CSP Directive in Meta Tag
+**Vulnerability:** Adding `frame-ancestors 'none'` to a `<meta http-equiv="Content-Security-Policy">` tag in a static HTML file.
+**Learning:** The `frame-ancestors` directive is ignored by browsers when delivered via a `<meta>` element. It must be delivered as an HTTP response header to be effective against clickjacking. Attempting to use it in a static HTML file creates a false sense of security (security theater) without actually mitigating the risk.
+**Prevention:** When creating a static HTML application without a backend, rely on other methods or acknowledge that clickjacking mitigation requires server-level headers. Never include `frame-ancestors` in a CSP `<meta>` tag.
