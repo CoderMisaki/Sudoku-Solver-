@@ -217,7 +217,7 @@
 
         <div id="nav-panel" class="nav-panel">
             <button onclick="changeSolution(-1)" id="btn-prev" class="btn-instant btn-numpad" style="width: 45px; height: 35px;" aria-label="Previous Solution">&lt;</button>
-            <div id="nav-text" style="font-size: 0.85rem; font-weight: bold; color: #facc15;">Solusi 1 / 5</div>
+            <div id="nav-text" aria-live="polite" style="font-size: 0.85rem; font-weight: bold; color: #facc15;">Solusi 1 / 5</div>
             <button onclick="changeSolution(1)" id="btn-next" class="btn-instant btn-numpad" style="width: 45px; height: 35px;" aria-label="Next Solution">&gt;</button>
         </div>
 
@@ -227,7 +227,7 @@
         </div>
 
         <!-- Status -->
-        <div id="status" style="font-size: 0.8rem; margin-bottom: 8px; height: 18px; color: #93c5fd; font-weight: bold; text-align: center; width: 100%; white-space: nowrap;">
+        <div id="status" aria-live="polite" style="font-size: 0.8rem; margin-bottom: 8px; height: 18px; color: #93c5fd; font-weight: bold; text-align: center; width: 100%; white-space: nowrap;">
             Gunakan panah untuk memindah kotak.
         </div>
 
@@ -269,7 +269,7 @@
         <div class="modal-content">
             <h2 id="modal-title" style="font-weight: bold; font-size: 1.1rem; text-align: center; color: white; margin: 0;">Import / Export Puzzle</h2>
             <textarea id="io-textarea" placeholder="Tempel angka di sini..."></textarea>
-            <div id="modal-error" class="modal-error-msg"></div>
+            <div id="modal-error" aria-live="polite" class="modal-error-msg"></div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                 <button id="btn-paste" onclick="pastePuzzle()" class="btn-instant btn-action" style="height: 38px; font-size: 0.9rem;">Tempel</button>
                 <button id="btn-clear-txt" onclick="clearTextarea()" class="btn-instant btn-del" style="height: 38px; font-size: 0.9rem;">Hapus Teks</button>
