@@ -227,7 +227,7 @@
         </div>
 
         <!-- Status -->
-        <div id="status" style="font-size: 0.8rem; margin-bottom: 8px; height: 18px; color: #93c5fd; font-weight: bold; text-align: center; width: 100%; white-space: nowrap;">
+        <div id="status" aria-live="polite" style="font-size: 0.8rem; margin-bottom: 8px; height: 18px; color: #93c5fd; font-weight: bold; text-align: center; width: 100%; white-space: nowrap;">
             Gunakan panah untuk memindah kotak.
         </div>
 
@@ -552,13 +552,21 @@
             return str;
         }
 
+        let previousActiveElement = null;
+
         function openModal() {
+            previousActiveElement = document.activeElement;
             modalError.textContent = ""; 
             ioTextarea.value = getFormattedPuzzle();
             ioModal.classList.add('active');
+            setTimeout(() => ioTextarea.focus(), 10);
         }
 
-        function closeModal() { ioModal.classList.remove('active'); modalError.textContent = ""; }
+        function closeModal() {
+            ioModal.classList.remove('active');
+            modalError.textContent = "";
+            if (previousActiveElement) previousActiveElement.focus();
+        }
 
         function copyPuzzle() {
             ioTextarea.value = getFormattedPuzzle(); 
