@@ -552,13 +552,24 @@
             return str;
         }
 
+        let lastFocusedElement = null;
+
         function openModal() {
+            lastFocusedElement = document.activeElement;
             modalError.textContent = ""; 
             ioTextarea.value = getFormattedPuzzle();
             ioModal.classList.add('active');
+            setTimeout(() => ioTextarea.focus(), 10);
         }
 
-        function closeModal() { ioModal.classList.remove('active'); modalError.textContent = ""; }
+        function closeModal() {
+            ioModal.classList.remove('active');
+            modalError.textContent = "";
+            if (lastFocusedElement) {
+                lastFocusedElement.focus();
+                lastFocusedElement = null;
+            }
+        }
 
         function copyPuzzle() {
             ioTextarea.value = getFormattedPuzzle(); 
